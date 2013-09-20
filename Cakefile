@@ -1,5 +1,12 @@
-fs = require 'fs'
+task 'watch', 'Watch source for changes', ->
+    coffee = spawn 'coffee', ['-w', '-c', '-o', 'static/js', 'coffee']
+    coffee.stderr.on 'data', (data) ->
+        process.stderr.write data.toString()
+    coffee.stdout.on 'data', (data) ->
+        print data.toString()
 
+
+fs = require 'fs'
 {print} = require 'sys'
 {spawn} = require 'child_process'
 {writeFile} = require 'fs'
@@ -35,13 +42,6 @@ build = (callback) ->
                 coffee.on 'exit', (code) ->
                     callback?() if code is 0
             )(row)
-
-task 'watch', 'Watch source for changes', ->
-    coffee = spawn 'coffee', ['-w', '-c', '-o', 'static/js', 'coffee']
-    coffee.stderr.on 'data', (data) ->
-        process.stderr.write data.toString()
-    coffee.stdout.on 'data', (data) ->
-        print data.toString()
 
 task 'build', 'Build from src', ->
     build()

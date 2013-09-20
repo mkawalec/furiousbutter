@@ -582,7 +582,7 @@ template = (spec={}, that={}) ->
         ctx = _helpers.deep_copy context
 
         _libs.open {
-            url: template_url + name 
+            url: template_url + name
             success: (data) ->
                 data = that.parse data, ctx
 
@@ -1053,7 +1053,7 @@ validators = (spec={}, that={}) ->
             errors.push.apply(errors, test_field(id, methods, current_id))
         return errors
 
-    test_field = (id, methods, current_id) ->           
+    test_field = (id, methods, current_id) ->
         errors = []
 
         # The parsers are applied before validators.
@@ -1505,14 +1505,14 @@ palantir = (spec={}, that={}) ->
         req_data.error = on_error(req_data.success, req_data.error, key)
         if req_data.type == 'GET' and req_data.palantir_cache != false
 
-            req_data.success = save_cache(req_data, key, 
+            req_data.success = save_cache(req_data, key,
                 req_data.success)
             if running_requests >= max_requests
                 return connection_storage.push promise(cached_memoize, args, key)
             else
                 return promise(cached_memoize, args, key)()
 
-        else if running_requests >= max_requests    
+        else if running_requests >= max_requests
             return connection_storage.push wrap_request $.ajax, req_data
 
         else if req_data.type != 'GET'
@@ -1520,6 +1520,8 @@ palantir = (spec={}, that={}) ->
 
         (wrap_request $.ajax, req_data)()
 
+    that.get = (url, callback=( -> )) ->
+        that.open {url: url, success: callback}
 
     that.template = (name, where) ->
         that.templates.open name, null, {where: where}
