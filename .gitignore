@@ -10,6 +10,7 @@
 *.log
 *.pot
 *.txt
+*.md
 tags
 crits
 nosetests.xml
