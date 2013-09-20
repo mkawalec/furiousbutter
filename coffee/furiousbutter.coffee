@@ -14,7 +14,7 @@ index = (spec={}, that={}) ->
         p.get "posts/#{ filename }", (data) ->
             [header, body] = _.filter data.split('---'), (i) -> i.length > 0
             header = parse_header header
-            post_parsed {header: header, body: body}
+            post_parsed {header: header, body: marked(body)}
 
     post_parsed = (posts_mount, post) ->
         posts.push posts_amount
@@ -36,5 +36,3 @@ settings = {
 }
 
 blog = index settings
-
-
