@@ -20,7 +20,7 @@ build = (callback) ->
             coffee = spawn 'coffee', ['-p', '-c', 'coffee/'+row]
             ((row) ->
                 coffee.stdout.on 'data', (output) ->
-                    filename = 'js/'+row.match(/\w*/)[0]
+                    filename = 'static/js/'+row.match(/\w*/)[0]
                     print 'writing ' + filename + '\n'
                     writeFile filename+'.js', output.toString(), (err) ->
                         if err then throw err
@@ -37,7 +37,7 @@ build = (callback) ->
             )(row)
 
 task 'watch', 'Watch source for changes', ->
-    coffee = spawn 'coffee', ['-w', '-c', '-o', 'js', 'coffee']
+    coffee = spawn 'coffee', ['-w', '-c', '-o', 'static/js', 'coffee']
     coffee.stderr.on 'data', (data) ->
         process.stderr.write data.toString()
     coffee.stdout.on 'data', (data) ->
