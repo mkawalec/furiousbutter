@@ -9,6 +9,7 @@
 *.json
 *.log
 *.pot
+*.txt
 tags
 crits
 nosetests.xml
