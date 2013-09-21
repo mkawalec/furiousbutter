@@ -1,4 +1,4 @@
-p = palanir {static_prefix: 'static'}
+p = palantir {static_prefix: 'static'}
 p.templates.parse = (body, context) ->
     compiled = _.template body
     return compiled context
