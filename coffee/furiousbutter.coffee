@@ -1,4 +1,4 @@
-p = palantir {static_prefix: 'static'}
+p = palantir {static_prefix: 'static/'}
 p.templates.parse = (body, context) ->
     compiled = _.template body
     return compiled context
@@ -11,18 +11,18 @@ index = (spec={}, that={}) ->
         _.each _.filter(posts_list, (i) -> i? and i.length > 0),
             _.partial(parse_post, _.partial(post_parsed, posts_list.length))
 
-    parse_post = (callback, filename) ->
+    parse_post = (callback=( -> ), filename) ->
         p.get "posts/#{ filename }", (data) ->
             [header, body] = _.filter data.split('---'), (i) -> i.length > 0
             header = parse_header header
-            console.log 'body', body
-            post_parsed {header: header, body: marked(body)}
+            callback {header: header, body: marked(body)}
 
     post_parsed = (posts_amount, post) ->
-        posts.push posts_amount
-        if posts.length == posts_amount
-            p.templates.open "themes/#{ spec.theme }/index.html",
-                posts, {}, $('body')
+        posts.push post
+        console.log posts_amount, posts.length
+        if posts.length == posts_amount - 1
+            p.templates.open "#{ spec.theme }/index.html",
+                {posts: posts, where: $('body')}
 
     parse_prop = (line) ->
         if not line? then return ''
@@ -38,7 +38,7 @@ index = (spec={}, that={}) ->
     return that
 
 settings = {
-    theme: 'ostrig'
+    theme: 'ostrich'
 }
 
 blog = index settings
