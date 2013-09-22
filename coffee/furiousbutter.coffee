@@ -3,9 +3,15 @@ class Cache
     @dirty = false
     @storage_key = 'FuriousButter'
 
+    constructor: ->
+        if window.localStorage?
+            setInterval(@persist, 5000)
+            if localStorage[Cache.storage_key]?
+                Cache.cache = JSON.parse localStorage[Cache.storage_key]
+
     get: (key) ->
         if _.has(Cache.cache, key)
-            if @timeout(key) then delete Cache.cache(key)
+            if @timeout(key) then delete Cache.cache[key]
             else return Cache.cache[key].payload
         return undefined
 
@@ -27,36 +33,30 @@ class Cache
 
         Cache.dirty = false
 
-    constructor: ->
-        if window.localStorage?
-            setInterval(@persist, 5000)
-            if localStorage[Cache.storage_key]?
-                Cache.cache = JSON.parse localStorage[Cache.storage_key]
-
 class CachedAjax
-    @cache = new Cache()
+    cache: new Cache
 
-    @ajax: (params, timeout) ->
-        if CachedAjax.cache.get(params.url) then params.success @cache.get(params.url)
+    ajax: (params, timeout) =>
+        if @cache.get(params.url) then params.success @cache.get(params.url)
         else
-            params.success = ((callback) -> (data) ->
-                CachedAjax.cache.set(params.url, data, timeout)
+            params.success = ((callback) => (data) =>
+                @cache.set(params.url, data, timeout)
                 callback data
             )(params.success)
 
             $.ajax params
 
     get: (url, callback=( -> ), timeout) =>
-        CachedAjax.ajax {url: url, type: 'GET', success: callback}, timeout
+        @ajax {url: url, type: 'GET', success: callback}, timeout
 
     post: (url, data, callback=( -> ), timeout) =>
-        CachedAjax.ajax {url: url, data: data, type: 'POST', success: callback}, timeout
+        @ajax {url: url, data: data, type: 'POST', success: callback}, timeout
 
     put: (url, data, callback=( -> ), timeout) =>
-        CachedAjax.ajax {url: url, data: data, type: 'PUT', success: callback}, timeout
+        @ajax {url: url, data: data, type: 'PUT', success: callback}, timeout
 
     delete: (url, callback=( -> ), timeout) =>
-        CachedAjax.ajax {url: url, type: 'DELETE', success: callback}, timeout
+        @ajax {url: url, type: 'DELETE', success: callback}, timeout
 
 class Helpers
     pull_params: (route) ->
