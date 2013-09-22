@@ -58,7 +58,7 @@ class CachedAjax
     delete: (url, callback=( -> ), timeout) =>
         CachedAjax.ajax {url: url, type: 'DELETE', success: callback}, timeout
 
-class Router
+class Helpers
     pull_params: (route) ->
         addr = route.split('?')[0]
         params = {}
@@ -72,6 +72,36 @@ class Router
             , {})
         return [addr, params]
 
+    add_params: (route, params) ->
+        _.each params, (value, key) ->
+            if '?' not in route then route += '?'
+            else route += '&'
+
+            route += "#{ encodeURIComponent key }=#{ encodeURIComponent value.toString() }"
+        return route
+
+class Router extends Helpers
+    @routes: {}
+
+    @route: (route, fn) ->
+        Router.routes[route] = fn
+        return fn
+
+    @goto: (route, params...) ->
+        [route, route_params] = @pull_params route
+        params = _.foldl(params, (memo, value, key) ->
+            memo[key] = value
+            return memo
+        , route_params)
+
+        window.location.hash = "##{ @add_params route, params }"
+
+    @hashchange: (e) ->
+        e.preventDefault()
+
+        [route, params] = @pull_params location.hash.slice(1)
+        if _.has(Router.routes, route) then Router.routes[route](params)
+
 class Index extends CachedAjax
     @renderers: {
         native: (context, data) ->
@@ -80,13 +110,13 @@ class Index extends CachedAjax
     }
     posts: []
 
-    parse_post: (callback=( -> ), filename) =>
+    parse_data: (callback=( -> ), filename) =>
         @get "posts/#{ filename }", (data) =>
             [header, body] = _.filter data.split('---'), (i) -> i.length > 0
             header = @parse_header header
             callback {header: header, body: marked(body)}
 
-    post_parsed: (posts_amount, post) =>
+    post_parsed: (post) =>
 
     parse_header: (header) ->
         return _.foldl(_.filter(header.split('\n'), (i) -> i.length > 0),
@@ -100,9 +130,8 @@ class Index extends CachedAjax
 
     constructor: (@spec) ->
         @get 'posts/index.txt', (data) =>
-            posts_list = data.split('\n')
-            _.each _.filter(posts_list, (i) -> i? and i.length > 0),
-                _.partial(@parse_post, _.partial(@post_parsed, posts_list.length))
+            @posts_list = _.filter data.split('\n'), (i) -> i? and i.length > 0
+            _.each @posts_list, _.partial(@parse_data, @post_parsed)
 
 
 settings = {
