@@ -58,6 +58,20 @@ class CachedAjax
     delete: (url, callback=( -> ), timeout) =>
         CachedAjax.ajax {url: url, type: 'DELETE', success: callback}, timeout
 
+class Router
+    pull_params: (route) ->
+        addr = route.split('?')[0]
+        params = {}
+
+        if route.split('?').length > 1
+            raw_params = route.split('?')[1].split('&')
+            params = _.foldl(raw_params, (memo, param) ->
+                memo[decodeURIComponent(param.split('=')[0])] = \
+                    decodeURIComponent(param.split('=')[1])
+                return memo
+            , {})
+        return [addr, params]
+
 class Index extends CachedAjax
     @renderers: {
         native: (context, data) ->
