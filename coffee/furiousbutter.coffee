@@ -122,8 +122,8 @@ class Index extends CachedAjax
 
     parse_data: (callback=( -> ), filename) =>
         @get "posts/#{ filename }", (data) =>
-            [header, body] = _.filter data.split('---'), (i) -> i.length > 0
-            [lead, body] = body.split /^--$/
+            [header, post] = _.filter data.split('---'), (i) -> i.length > 0
+            [lead, body] = post.split /^--$/
 
             header = @parse_header header
             callback {header: header, lead: marked(lead), \
