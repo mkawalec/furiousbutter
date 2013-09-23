@@ -142,7 +142,7 @@ class Index extends CachedAjax
     constructor: (@spec={}) ->
         Index.themes[@spec.theme].render_index @get_posts, @
 
-    get_posts: (params={}) ->
+    get_posts: (params={}, callback=@post_parsed) ->
         @get 'posts/index.txt', (data) =>
             @posts_list = _.filter data.split('\n'), (i) -> i? and i.length > 0
             if _.has(params, 'after')
@@ -155,7 +155,7 @@ class Index extends CachedAjax
                 begin = if params.limit then (end - params.limit) else 0
                 @posts_list = @posts_list.slice(begin, end)
 
-            _.each @posts_list, _.partial(@parse_data, @post_parsed)
+            _.each @posts_list, _.partial(@parse_data, callback)
 
 settings = {
     theme: 'ostrich'
