@@ -105,8 +105,8 @@ class Router extends Helpers
 class Theme
     register: ->
         Index.themes[@name] = {
-            show_post: @show_post
-            show_index: @show_index
+            render_post: @render_post
+            render_index: @render_index
         }
 
 
@@ -123,10 +123,13 @@ class Index extends CachedAjax
     parse_data: (callback=( -> ), filename) =>
         @get "posts/#{ filename }", (data) =>
             [header, body] = _.filter data.split('---'), (i) -> i.length > 0
-            header = @parse_header header
-            callback {header: header, body: marked(body)}
+            [lead, body] = body.split /^--$/
 
-    post_parsed: (post) =>
+            header = @parse_header header
+            callback {header: header, lead: marked(lead), \
+                body: marked(body), filename: filename}
+
+    post_parsed: (post) => @themes[@spec.theme].render_post post, @posts_list
 
     parse_header: (header) ->
         return _.foldl(_.filter(header.split('\n'), (i) -> i.length > 0),
@@ -138,7 +141,8 @@ class Index extends CachedAjax
                 return memo
         , {})
 
-    constructor: (@spec={}) -> @get_posts()
+    constructor: (@spec={}) ->
+        @themes[@spec.theme].render_index @get_posts, @
 
     get_posts: (params={}) ->
         @get 'posts/index.txt', (data) =>
