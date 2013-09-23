@@ -108,6 +108,7 @@ class Index extends CachedAjax
             compiled = _.template body
             return compiled context
     }
+    @themes: {}
     posts: []
 
     parse_data: (callback=( -> ), filename) =>
