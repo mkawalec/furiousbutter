@@ -121,12 +121,32 @@ class Router extends Helpers
         if _.has(Router.routes, route) then Router.routes[route](params)
 
 class Theme extends Helpers
+    @include new CachedAjax()
+
     @register: (instance) -> Blog.themes[@name] = instance
 
+    @get_theme: (blog, theme, ctx={}, callback=( -> )) ->
+        blog.get "themes/#{ blog.spec.theme }/html/#{ theme }.html", (data) ->
+            [header, body] = _.filter data.split('---'), (i) -> i.length > 0
+            # If there is no header in the file
+            if not body? then [header, body] = [body, header]
+
+            renderer = blog.spec.renderer
+            if header? and _.has(header, 'renderer') then renderer = header.renderer
+                
+            data = Blog.renderers[renderer] ctx, body
+            callback.call blog, data
+
+    render_index: (ctx, callback) ->
+        @blog_instance = ctx
+        Theme.get_theme @blog_instance, 'index', {}, callback
+
 class Blog extends CachedAjax
+    @cache: new Cache()
     @renderers: {
-        native: (context, data) ->
-            compiled = _.template body
+        native: (context, body) =>
+            compiled = Blog.cache.get(body)
+            if not compiled? then compiled = _.template body
             return compiled context
     }
     @themes: {}
@@ -136,15 +156,17 @@ class Blog extends CachedAjax
         @get "posts/#{ filename }", (data) =>
             [header, post] = _.filter data.split('---'), (i) -> i.length > 0
             [lead, body] = post.split /^--$/
+            if not body? then [lead, body] = [body, lead]
 
             header = @parse_header header
-            callback {header: header, lead: marked(lead), \
-                body: marked(body), filename: filename}
+            callback {header: header, lead: marked(lead ? ''), \
+                body: marked(body ? ''), filename: filename}
 
     post_parsed: (post) => Blog.themes[@spec.theme].render_post post, @posts_list
 
     constructor: (@spec={}) ->
-        Blog.themes[@spec.theme].render_index @get_posts, @
+        if not _.has(@spec, 'renderer') then @spec.renderer = 'native'
+        Blog.themes[@spec.theme].render_index @, @get_posts
 
     get_posts: (params={}, callback=@post_parsed) ->
         @get 'posts/index.txt', (data) =>
