@@ -102,6 +102,15 @@ class Router extends Helpers
         [route, params] = @pull_params location.hash.slice(1)
         if _.has(Router.routes, route) then Router.routes[route](params)
 
+class Theme
+    register: ->
+        Index.themes[@name] = {
+            show_post: @show_post
+            show_index: @show_index
+        }
+
+
+
 class Index extends CachedAjax
     @renderers: {
         native: (context, data) ->
@@ -129,9 +138,21 @@ class Index extends CachedAjax
                 return memo
         , {})
 
-    constructor: (@spec) ->
+    constructor: (@spec) -> @get_posts()
+
+    get_posts: (params={}) ->
         @get 'posts/index.txt', (data) =>
             @posts_list = _.filter data.split('\n'), (i) -> i? and i.length > 0
+            if _.has(params, 'after')
+                end = params.limit ? undefined
+                @posts_list = @posts_list.slice(
+                    _.indexOf(@posts_list, decodeURIComponent(params.after)) + 1,
+                    end)
+            else if _.has(params, 'before')
+                end = _.indexOf(@posts_list, decodeURIComponent(params.before))
+                begin = if params.limit then (end - params.limit) else 0
+                @posts_list = @posts_list.slice(begin, end)
+
             _.each @posts_list, _.partial(@parse_data, @post_parsed)
 
 
