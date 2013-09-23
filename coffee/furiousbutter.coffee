@@ -33,7 +33,39 @@ class Cache
 
         Cache.dirty = false
 
-class CachedAjax
+class Helpers
+    pull_params: (route) ->
+        addr = route.split('?')[0]
+        params = {}
+
+        if route.split('?').length > 1
+            raw_params = route.split('?')[1].split('&')
+            params = _.foldl(raw_params, (memo, param) ->
+                memo[decodeURIComponent(param.split('=')[0])] = \
+                    decodeURIComponent(param.split('=')[1])
+                return memo
+            , {})
+        return [addr, params]
+
+    add_params: (route, params) ->
+        _.each params, (value, key) ->
+            if '?' not in route then route += '?'
+            else route += '&'
+
+            route += "#{ encodeURIComponent key }=#{ encodeURIComponent value.toString() }"
+        return route
+
+    parse_header: (header) ->
+        return _.foldl(_.filter(header.split('\n'), (i) -> i.length > 0),
+            (memo, line) ->
+                prop = _.first line.split(':')
+                memo[prop] = $.trim line.split(':')[1]
+                if memo[prop].indexOf(',') != -1
+                    memo[prop] = _.each memo[prop].split(','), (i) -> $.trim i
+                return memo
+        , {})
+
+class CachedAjax extends Helpers
     cache: new Cache
 
     ajax: (params, timeout) =>
@@ -58,28 +90,6 @@ class CachedAjax
     delete: (url, callback=( -> ), timeout) =>
         @ajax {url: url, type: 'DELETE', success: callback}, timeout
 
-class Helpers
-    pull_params: (route) ->
-        addr = route.split('?')[0]
-        params = {}
-
-        if route.split('?').length > 1
-            raw_params = route.split('?')[1].split('&')
-            params = _.foldl(raw_params, (memo, param) ->
-                memo[decodeURIComponent(param.split('=')[0])] = \
-                    decodeURIComponent(param.split('=')[1])
-                return memo
-            , {})
-        return [addr, params]
-
-    add_params: (route, params) ->
-        _.each params, (value, key) ->
-            if '?' not in route then route += '?'
-            else route += '&'
-
-            route += "#{ encodeURIComponent key }=#{ encodeURIComponent value.toString() }"
-        return route
-
 class Router extends Helpers
     @routes: {}
 
@@ -102,14 +112,12 @@ class Router extends Helpers
         [route, params] = @pull_params location.hash.slice(1)
         if _.has(Router.routes, route) then Router.routes[route](params)
 
-class Theme
+class Theme extends Helpers
     register: ->
         Index.themes[@name] = {
             render_post: @render_post
             render_index: @render_index
         }
-
-
 
 class Index extends CachedAjax
     @renderers: {
@@ -129,20 +137,10 @@ class Index extends CachedAjax
             callback {header: header, lead: marked(lead), \
                 body: marked(body), filename: filename}
 
-    post_parsed: (post) => @themes[@spec.theme].render_post post, @posts_list
-
-    parse_header: (header) ->
-        return _.foldl(_.filter(header.split('\n'), (i) -> i.length > 0),
-            (memo, line) ->
-                prop = _.first line.split(':')
-                memo[prop] = $.trim line.split(':')[1]
-                if memo[prop].indexOf(',') != -1
-                    memo[prop] = _.each memo[prop].split(','), (i) -> $.trim i
-                return memo
-        , {})
+    post_parsed: (post) => Index.themes[@spec.theme].render_post post, @posts_list
 
     constructor: (@spec={}) ->
-        @themes[@spec.theme].render_index @get_posts, @
+        Index.themes[@spec.theme].render_index @get_posts, @
 
     get_posts: (params={}) ->
         @get 'posts/index.txt', (data) =>
@@ -158,7 +156,6 @@ class Index extends CachedAjax
                 @posts_list = @posts_list.slice(begin, end)
 
             _.each @posts_list, _.partial(@parse_data, @post_parsed)
-
 
 settings = {
     theme: 'ostrich'
