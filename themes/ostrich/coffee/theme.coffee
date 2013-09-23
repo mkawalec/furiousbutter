@@ -1,6 +1,11 @@
 class Ostrich extends Theme
+    @include new CachedAjax()
+
     constructor: ->
-        @name = 'ostrich'
-        @register()
+        Ostrich.register @
+
+    render_index: (callback, ctx) ->
+        console.log ':D'
+
 
 ostrich = new Ostrich()

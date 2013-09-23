@@ -34,7 +34,7 @@ class Cache
         Cache.dirty = false
 
 class Helpers
-    @extend: (obj) ->
+    extend: (obj) ->
         for key, value of obj
             @[key] = value
 
@@ -121,13 +121,7 @@ class Router extends Helpers
         if _.has(Router.routes, route) then Router.routes[route](params)
 
 class Theme extends Helpers
-    register: ->
-        Blog.themes[@name] = {
-            render_post: @render_post
-            render_index: @render_index
-        }
-
-    get:
+    @register: (instance) -> Blog.themes[@name] = instance
 
 class Blog extends CachedAjax
     @renderers: {
@@ -169,3 +163,4 @@ class Blog extends CachedAjax
 
 window.Blog = Blog
 window.Theme = Theme
+window.CachedAjax = CachedAjax
