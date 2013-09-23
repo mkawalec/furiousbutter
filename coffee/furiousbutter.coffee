@@ -34,6 +34,14 @@ class Cache
         Cache.dirty = false
 
 class Helpers
+    @extend: (obj) ->
+        for key, value of obj
+            @[key] = value
+
+    @include: (obj) ->
+        for key, value of obj
+            @::[key] = value
+
     pull_params: (route) ->
         addr = route.split('?')[0]
         params = {}
@@ -119,6 +127,8 @@ class Theme extends Helpers
             render_index: @render_index
         }
 
+    get:
+
 class Blog extends CachedAjax
     @renderers: {
         native: (context, data) ->
@@ -140,8 +150,7 @@ class Blog extends CachedAjax
     post_parsed: (post) => Blog.themes[@spec.theme].render_post post, @posts_list
 
     constructor: (@spec={}) ->
-        console.log @spec, Blog.themes
-        #Blog.themes[@spec.theme].render_index @get_posts, @
+        Blog.themes[@spec.theme].render_index @get_posts, @
 
     get_posts: (params={}, callback=@post_parsed) ->
         @get 'posts/index.txt', (data) =>
