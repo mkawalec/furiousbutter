@@ -138,7 +138,7 @@ class Index extends CachedAjax
                 return memo
         , {})
 
-    constructor: (@spec) -> @get_posts()
+    constructor: (@spec={}) -> @get_posts()
 
     get_posts: (params={}) ->
         @get 'posts/index.txt', (data) =>
