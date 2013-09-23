@@ -1,5 +1,5 @@
 task 'watch', 'Watch source for changes', ->
-    coffee = spawn 'coffee', ['-w', '-c', '-o', 'static/js', 'coffee']
+    coffee = spawn 'coffee', ['-w', '-c', '-o', 'js', 'coffee']
     coffee.stderr.on 'data', (data) ->
         process.stderr.write data.toString()
     coffee.stdout.on 'data', (data) ->
@@ -27,7 +27,7 @@ build = (callback) ->
             coffee = spawn 'coffee', ['-p', '-c', 'coffee/'+row]
             ((row) ->
                 coffee.stdout.on 'data', (output) ->
-                    filename = 'static/js/'+row.match(/\w*/)[0]
+                    filename = 'js/'+row.match(/\w*/)[0]
                     print 'writing ' + filename + '\n'
                     writeFile filename+'.js', output.toString(), (err) ->
                         if err then throw err

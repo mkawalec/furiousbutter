@@ -114,12 +114,12 @@ class Router extends Helpers
 
 class Theme extends Helpers
     register: ->
-        Index.themes[@name] = {
+        Blog.themes[@name] = {
             render_post: @render_post
             render_index: @render_index
         }
 
-class Index extends CachedAjax
+class Blog extends CachedAjax
     @renderers: {
         native: (context, data) ->
             compiled = _.template body
@@ -137,10 +137,11 @@ class Index extends CachedAjax
             callback {header: header, lead: marked(lead), \
                 body: marked(body), filename: filename}
 
-    post_parsed: (post) => Index.themes[@spec.theme].render_post post, @posts_list
+    post_parsed: (post) => Blog.themes[@spec.theme].render_post post, @posts_list
 
     constructor: (@spec={}) ->
-        Index.themes[@spec.theme].render_index @get_posts, @
+        console.log @spec, Blog.themes
+        #Blog.themes[@spec.theme].render_index @get_posts, @
 
     get_posts: (params={}, callback=@post_parsed) ->
         @get 'posts/index.txt', (data) =>
@@ -157,8 +158,5 @@ class Index extends CachedAjax
 
             _.each @posts_list, _.partial(@parse_data, callback)
 
-settings = {
-    theme: 'ostrich'
-}
-
-blog = new Index settings
+window.Blog = Blog
+window.Theme = Theme
