@@ -1,5 +1,5 @@
 task 'watch', 'Watch source for changes', ->
-    coffee = spawn 'coffee', ['-w', '-c', '-o', 'static/js', 'coffee']
+    coffee = spawn 'coffee', ['-w', '-c', '-l', '-o', 'static/js', 'coffee']
     coffee.stderr.on 'data', (data) ->
         process.stderr.write data.toString()
     coffee.stdout.on 'data', (data) ->
@@ -24,7 +24,7 @@ build = (callback) ->
         for row in data.toString().split('\n')
             if not row.match /\.coffee/
                 continue
-            coffee = spawn 'coffee', ['-p', '-c', 'coffee/'+row]
+            coffee = spawn 'coffee', ['-p', '-c', '-l', 'coffee/'+row]
             ((row) ->
                 coffee.stdout.on 'data', (output) ->
                     filename = 'static/js/'+row.match(/\w*/)[0]
