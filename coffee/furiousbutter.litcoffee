@@ -35,13 +35,13 @@ it is able to display stuff, it should be much more inclusive.
 ### Useful functions
 
 Almost every furiousbutter class inherits the basic helper functions
-from helpers. If you write your own extension you will most probably
+from here. If you write your own extension you will most probably
 like to interit from it too.
 
     class Helpers
 
 It is useful to be able to extend a class. And even more useful to add
-instance and class properties properties.
+instance and class properties.
 
         extend: (obj) ->
             for key, value of obj
