@@ -27,10 +27,10 @@ it is able to display stuff, it should be much more inclusive.
 
 ## TODO
 
-[ ] Finish documenting the code
-[ ] Drop dependence on jQuery
-[ ] Make the basic interace useful
-[ ] Add a Backbone interface (rendering engine)
+- [ ] Finish documenting the code
+- [ ] Drop dependence on jQuery
+- [ ] Make the basic interace useful
+- [ ] Add a Backbone interface (rendering engine)
 
 ### Useful functions
 
