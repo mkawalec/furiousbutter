@@ -3,43 +3,29 @@ FuriousButter
 
 The small and agile client-side blog framework. The idea here
 is to write your posts in markdown and then parse everything on
-the client side however you want in the ways I, as the creator
-havent even imagined beforehand.
+the client side however you want without the hassle of learning
+a large codebase.
 
-    class Cache
-        @cache = {}
-        @dirty = false
-        @storage_key = 'FuriousButter'
+There is another advantage in that frontend developers need not worry
+about contacting the server efficiently, it is taken care of in the
+background.
 
-        constructor: ->
-            if window.localStorage?
-                setInterval(@persist, 5000)
-                if localStorage[Cache.storage_key]?
-                    Cache.cache = JSON.parse localStorage[Cache.storage_key]
+### Why only render on the client side?
 
-        get: (key) ->
-            if _.has(Cache.cache, key)
-                if @timeout(key) then delete Cache.cache[key]
-                else return Cache.cache[key].payload
-            return undefined
+Honestly? I am unsure why it would be beneficial to have a client side
+only blogging engine. I hope that in the course of developement an
+unusual feature will reveal itself (webRTC will probably be of a lot of
+help here) and it will make much more sense to have this client in pure
+JS.
 
-        set: (key, value, timeout=3600) ->
-            Cache.cache[key] = {
-                expires: (new Date()).getTime() + 1000 * timeout
-                payload: value
-            }
-            Cache.dirty = true
-            return key
+Think of it as a research project for now.
 
-        timeout: (key) ->
-            if (new Date()).getTime() > Cache.cache[key].expires then return true
-            return false
+### Who is it for?
 
-        persist: ->
-            if not Cache.dirty then return
-            window.localStorage[Cache.storage_key] = JSON.stringify Cache.cache
+At the current stage, purely for JS and CoffeeScript hackers. But after
+it is able to display stuff, it should be much more inclusive.
 
-            Cache.dirty = false
+### Useful functions
 
     class Helpers
         extend: (obj) ->
@@ -80,6 +66,41 @@ havent even imagined beforehand.
                         memo[prop] = _.each memo[prop].split(','), (i) -> $.trim i
                     return memo
             , {})
+
+    class Cache
+        @cache = {}
+        @dirty = false
+        @storage_key = 'FuriousButter'
+
+        constructor: ->
+            if window.localStorage?
+                setInterval(@persist, 5000)
+                if localStorage[Cache.storage_key]?
+                    Cache.cache = JSON.parse localStorage[Cache.storage_key]
+
+        get: (key) ->
+            if _.has(Cache.cache, key)
+                if @timeout(key) then delete Cache.cache[key]
+                else return Cache.cache[key].payload
+            return undefined
+
+        set: (key, value, timeout=3600) ->
+            Cache.cache[key] = {
+                expires: (new Date()).getTime() + 1000 * timeout
+                payload: value
+            }
+            Cache.dirty = true
+            return key
+
+        timeout: (key) ->
+            if (new Date()).getTime() > Cache.cache[key].expires then return true
+            return false
+
+        persist: ->
+            if not Cache.dirty then return
+            window.localStorage[Cache.storage_key] = JSON.stringify Cache.cache
+
+            Cache.dirty = false
 
     class CachedAjax extends Helpers
         cache: new Cache
@@ -194,3 +215,5 @@ havent even imagined beforehand.
     window.Blog = Blog
     window.Theme = Theme
     window.CachedAjax = CachedAjax
+
+<!-- vim:set tw=72: -->
