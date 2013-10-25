@@ -25,9 +25,24 @@ Think of it as a research project for now.
 At the current stage, purely for JS and CoffeeScript hackers. But after
 it is able to display stuff, it should be much more inclusive.
 
+## TODO
+
+[ ] Finish documenting the code
+[ ] Drop dependence on jQuery
+[ ] Make the basic interace useful
+[ ] Add a Backbone interface (rendering engine)
+
 ### Useful functions
 
+Almost every furiousbutter class inherits the basic helper functions
+from helpers. If you write your own extension you will most probably
+like to interit from it too.
+
     class Helpers
+
+It is useful to be able to extend a class. And even more useful to add
+instance and class properties properties.
+
         extend: (obj) ->
             for key, value of obj
                 @[key] = value
@@ -36,11 +51,22 @@ it is able to display stuff, it should be much more inclusive.
             for key, value of obj
                 @::[key] = value
 
+When routing it is of great help to extract the address and url-decoded
+parameters from an URI.
+
         pull_params: (route) ->
+
+Faced with standards-abiding URIs, the left part of ? will be the
+address and the right will contain various parameters.
+
             addr = route.split('?')[0]
             params = {}
 
             if route.split('?').length > 1
+
+If there are any parameters, they need to be extracted from the string
+containing all of them and then decoded from URI representation
+
                 raw_params = route.split('?')[1].split('&')
                 params = _.foldl(raw_params, (memo, param) ->
                     memo[decodeURIComponent(param.split('=')[0])] = \
@@ -49,17 +75,32 @@ it is able to display stuff, it should be much more inclusive.
                 , {})
             return [addr, params]
 
+Of course extracting the parameters is just half of the job - we want to
+be able to create the parameter-containing addresses.
+
         add_params: (route, params) ->
             _.each params, (value, key) ->
+
+The first parameter needs to be separated from the address by ?, while
+the rest are separated by & from each other. Each of the parameters is
+URI encoded.
+
                 if '?' not in route then route += '?'
                 else route += '&'
 
                 route += "#{ encodeURIComponent key }=#{ encodeURIComponent value.toString() }"
             return route
 
+Quite often a list of tags inside the header-like region of a file will
+be needed, so Helpers accommodate for that end.
+
         parse_header: (header) ->
             return _.foldl(_.filter(header.split('\n'), (i) -> i.length > 0),
                 (memo, line) ->
+
+The tags are formated as 'value: property1, property2'. Of course any
+unneeded whitespace is trimmed.
+
                     prop = _.first line.split(':')
                     memo[prop] = $.trim line.split(':')[1]
                     if memo[prop].indexOf(',') != -1
