@@ -12,13 +12,13 @@ background.
 
 ### Why only render on the client side?
 
-Honestly? I am unsure why it would be beneficial to have a client side
-only blogging engine. I hope that in the course of developement an
-unusual feature will reveal itself (webRTC will probably be of a lot of
-help here) and it will make much more sense to have this client in pure
-JS.
+The more I think about it, the more I realize the amazing potential it
+could have - think about private blogs self-hosted on Dropbox. No more
+ads. No more being dependent on some kind of an external blogging
+platform.
 
-Think of it as a research project for now.
+However, the code quality is still pretty rough and it only displays a
+text string now so think of it as a research project for now.
 
 ### Who is it for?
 
