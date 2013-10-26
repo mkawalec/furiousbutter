@@ -177,8 +177,19 @@ there were any modifications to the cache state.
 
             Cache.dirty = false
 
+### Cached Ajax methods
+
+As far as the later parts of the app are concerned, the cache is
+abstracted out by the following class. The other methods (post, put and
+delete) are provided for completeness sake.
+
     class CachedAjax extends Helpers
         cache: new Cache
+
+The full-blown cached version of jQuery ajax is needed at times and so
+it is provided. It gets the data from the **Cache** if it exists there or
+saves it in **Cache** before executing the success callback if a network
+request is needed.
 
         ajax: (params, timeout) =>
             if @cache.get(params.url) then params.success @cache.get(params.url)
@@ -189,6 +200,8 @@ there were any modifications to the cache state.
                 )(params.success)
 
                 $.ajax params
+
+Shorthand versions of the above, should cater to 95% of usage scenarios.
 
         get: (url, callback=( -> ), timeout) =>
             @ajax {url: url, type: 'GET', success: callback}, timeout
