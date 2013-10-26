@@ -28,10 +28,11 @@ it is able to display stuff, it should be much more inclusive.
 ## TODO
 
 - [ ] Finish documenting the code
+- [ ] Routes use Regular Expressions
+- [ ] Return promises as apart from accepting callbacks
 - [ ] Drop dependence on jQuery
 - [ ] Make the basic interace useful
 - [ ] Add a Backbone interface (rendering engine)
-- [ ] Routes use Regular Expressions
 
 ### Useful functions
 
@@ -276,22 +277,50 @@ if **Router** knows about its existence.
             [route, params] = @pull_params location.hash.slice(1)
             if _.has(Router.routes, route) then Router.routes[route](params)
 
+### The themes controller
+
+Actually putting stuff on screen is important, and the **Theme** class
+is brave enough to take control of it. It gives the themes the ability
+to notify the backend of their existence, as well as some helper
+functionality. When writing a theme, inherit from this class.
+
     class Theme extends Helpers
         @include new CachedAjax()
 
-        @register: (instance) -> Blog.themes[@name] = instance
+All the registered themes sit in the **Theme**.themes object.
+Registering a new theme just adds a new entry with the theme name as the
+key.
+
+        @themes = {}
+        @register: (instance) -> Theme.themes[@name] = instance
+
+Calls the callback with the parsed template data.
 
         @get_theme: (blog, theme, ctx={}, callback=( -> )) ->
             blog.get "themes/#{ blog.spec.theme }/html/#{ theme }.html", (data) ->
                 [header, body] = _.filter data.split('---'), (i) -> i.length > 0
-                # If there is no header in the file
+
+If there is no header section in the file being parsed the first element
+returned by the *\_.filter* above will be the theme body. We need to
+exchange the element order in such a case
+
                 if not body? then [header, body] = [body, header]
+
+Render with the renderer provided in the renderer section of theme
+header or, if no rendering method is provided, render with the default
+method for the current blog.
 
                 renderer = blog.spec.renderer
                 if header? and _.has(header, 'renderer') then renderer = header.renderer
+
+Parse the theme body and call the callback with that data.
                     
                 data = Blog.renderers[renderer] ctx, body
                 callback.call blog, data
+
+This method is called by the **Blog** when it wants to render a
+template. The callback points to the action the blog wants to invoke
+after the index is rendered.
 
         render_index: (ctx, callback) ->
             @blog_instance = ctx
@@ -318,11 +347,11 @@ if **Router** knows about its existence.
                 callback {header: header, lead: marked(lead ? ''), \
                     body: marked(body ? ''), filename: filename}
 
-        post_parsed: (post) => Blog.themes[@spec.theme].render_post post, @posts_list
+        post_parsed: (post) => Theme.themes[@spec.theme].render_post post, @posts_list
 
         constructor: (@spec={}) ->
             if not _.has(@spec, 'renderer') then @spec.renderer = 'native'
-            Blog.themes[@spec.theme].render_index @, @get_posts
+            Theme.themes[@spec.theme].render_index @, @get_posts
 
         get_posts: (params={}, callback=@post_parsed) ->
             @get 'posts/index.txt', (data) =>
