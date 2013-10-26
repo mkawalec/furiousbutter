@@ -31,6 +31,7 @@ it is able to display stuff, it should be much more inclusive.
 - [ ] Drop dependence on jQuery
 - [ ] Make the basic interace useful
 - [ ] Add a Backbone interface (rendering engine)
+- [ ] Routes use Regular Expressions
 
 ### Useful functions
 
@@ -215,23 +216,61 @@ Shorthand versions of the above, should cater to 95% of usage scenarios.
         delete: (url, callback=( -> ), timeout) =>
             @ajax {url: url, type: 'DELETE', success: callback}, timeout
 
+### URI Routing
+
+A basic router is useful to bind a certain function to a specified URI.
+There is really nothing more that this class does.
+
     class Router extends Helpers
+
+Currently bound routes can be accessed at **Router**.routes.
+
         @routes: {}
 
-        @route: (route, fn) ->
-            Router.routes[route] = fn
-            return fn
+Create a route for the function and return the provided function.
 
-        @goto: (route, params...) ->
+        route: (route, fn) -> Router.routes[route] = fn
+
+Navigates to the given route making sure that the parameters are
+correctly parsed. *params* can be any number of parameters that are
+either primitive types, objects or arrays. Using arrays and primitive
+types should be avoided, though.
+
+        goto: (route, params...) ->
+
+Pull out any parameters that are included in the route at the time of
+calling the function.
+
             [route, route_params] = @pull_params route
-            params = _.foldl(params, (memo, value, key) ->
-                memo[key] = value
-                return memo
-            , route_params)
+            params = _.foldl(params, (parsed_params, param) ->
 
-            window.location.hash = "##{ @add_params route, params }"
+If the parameter being parsed is neither an *Object* nor an *Array* just set
+the parameter key to the value of the parameter. This can cause various
+hard to find bugs, so just keep to using objects of keys.
 
-        @hashchange: (e) ->
+                if typeof param != "object"
+                    parsed_params[param] = param
+                    return parsed_params
+
+If it is an *Object*, set the parsed_params keys and values to those in
+the currently processed object. Remember that *Array* is also an
+*Object* and if *param* is and *Array* the keys will be the consecutive
+array indexes. This **will** create conflicts if more than one array is
+provided in *params* splat.
+
+                return _.extend parsed_params, _.foldl(param, (memo, value, key) ->
+                    memo[key] = value
+                    return memo
+                , {})
+            , {})
+
+            window.location.hash = \
+                "##{ @add_params route, _.extend(params, route_params) }"
+
+This method is the hashchange event processor and navigates to a route
+if **Router** knows about its existence.
+
+        hashchange: (e) ->
             e.preventDefault()
 
             [route, params] = @pull_params location.hash.slice(1)
@@ -300,6 +339,7 @@ Shorthand versions of the above, should cater to 95% of usage scenarios.
 
                 _.each @posts_list, _.partial(@parse_data, callback)
 
+    window.Router = Router
     window.Blog = Blog
     window.Theme = Theme
     window.CachedAjax = CachedAjax
