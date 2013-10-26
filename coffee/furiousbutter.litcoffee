@@ -98,8 +98,8 @@ be needed, so Helpers accommodate for that end.
             return _.foldl(_.filter(header.split('\n'), (i) -> i.length > 0),
                 (memo, line) ->
 
-The tags are formated as 'value: property1, property2'. Of course any
-unneeded whitespace is trimmed.
+The tags are formated as 'value: property1, property2' and any unneeded
+whitespace is trimmed.
 
                     prop = _.first line.split(':')
                     memo[prop] = $.trim line.split(':')[1]
@@ -108,16 +108,39 @@ unneeded whitespace is trimmed.
                     return memo
             , {})
 
+### Client side-cache
+
+As we want to limit the server requests to minimum, every data request
+is passed through a **Cache** that saves its results for a certain time.
+And because the blog only issues GET requests there is no need to deal
+with cache invaldation.
+
     class Cache
+
+Theere are two cache levels - the cache object available at
+**Cache**.cache and the *localStorage* cache. Former is used to provide
+fast access and the latter provides data persistence between page
+reloads. The downside of the current implementation is that both caches
+are kept (more or less) the same, so the size of both has to be equal.
+
         @cache = {}
         @dirty = false
+
+The *localStorage* key under which the contents of @cache are saved.
+
         @storage_key = 'FuriousButter'
 
         constructor: ->
+
+We want to only use the localstorage if it is available in the browser.
+If it is, schedule the change persister method to be executed every 3
+seconds and load the last cache state (if it exists).
+
             if window.localStorage?
-                setInterval(@persist, 5000)
-                if localStorage[Cache.storage_key]?
-                    Cache.cache = JSON.parse localStorage[Cache.storage_key]
+                setInterval @persist, 3000
+                Cache.cache = JSON.parse (localStorage[Cache.storage_key] ? '{}')
+
+Get an object with a given key, or an *undefined* if it doesn't exist.
 
         get: (key) ->
             if _.has(Cache.cache, key)
@@ -125,17 +148,28 @@ unneeded whitespace is trimmed.
                 else return Cache.cache[key].payload
             return undefined
 
+Set a value with a key and an optional timeout. Notice that setting the
+same key more than once will overwrite the value currently saved at this
+key.
+
         set: (key, value, timeout=3600) ->
+
+Mark the cache persistable and return the saved cache object.
+
+            Cache.dirty = true
             Cache.cache[key] = {
                 expires: (new Date()).getTime() + 1000 * timeout
                 payload: value
             }
-            Cache.dirty = true
-            return key
+
+Check if an element with the provided key has expired or not.
 
         timeout: (key) ->
             if (new Date()).getTime() > Cache.cache[key].expires then return true
             return false
+
+Serialize the **Cache**.cache object and save in the *localCache* if
+there were any modifications to the cache state.
 
         persist: ->
             if not Cache.dirty then return
@@ -257,4 +291,4 @@ unneeded whitespace is trimmed.
     window.Theme = Theme
     window.CachedAjax = CachedAjax
 
-<!-- vim:set tw=72: -->
+<!-- vim:set tw=72:setlocal formatoptions-=t: -->
