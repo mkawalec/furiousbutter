@@ -10,6 +10,8 @@ fs = require 'fs'
 {print} = require 'sys'
 {spawn} = require 'child_process'
 {writeFile} = require 'fs'
+_ = require 'underscore'
+
 try
     UglifyJS = require("uglify-js")
 catch e
@@ -21,6 +23,7 @@ build = (callback) ->
     ls = spawn 'ls', ['coffee']
 
     ls.stdout.on 'data', (data) ->
+        console.log "Building the backend..."
         for row in data.toString().split('\n')
             if not row.match /\.coffee/
                 continue
@@ -42,6 +45,16 @@ build = (callback) ->
                 coffee.on 'exit', (code) ->
                     callback?() if code is 0
             )(row)
+
+    compile_themes()
+
+compile_themes = ->
+    theme_list = spawn 'ls', ['themes']
+    theme_list.stdout.on 'data', (data) ->
+        console.log "\nBuilding themes..."
+        _.each _.filter(data.toString().split('\n'), (i) -> i.length > 0), (theme) ->
+            console.log "Building theme #{theme}"
+            spawn 'cake', ['build'], {cwd: "themes/#{theme}"}
 
 task 'build', 'Build from src', ->
     build()
