@@ -357,7 +357,7 @@ following.
         parse_post: (callback=( -> ), filename) =>
             @get "posts/#{ filename }", (data) =>
 
-After getting the file contents parsing (which is relatively costly)
+After getting the file, contents parsing (which is relatively costly)
 should only be initiated if there is no cached version of the parsed
 post available in the **Blog**.cache.
 
@@ -399,28 +399,46 @@ If no default renderer is set through the runtime configuration, the
 There is no need to set a default theme if only one theme is available,
 but it is useful if more are provided on the page.
 
-            theme = @spec.theme ? _.first _.keys Theme.themes
-            @spec.theme = theme
-            Theme.themes[theme].render_index @, @get_posts
+            if not @spec.theme? then @spec.theme = _.first _.keys Theme.themes
+            Theme.themes[@spec.theme].render_index @, @get_posts
+
+And finally, we need a method to actually get the posts
 
         get_posts: (params={}, callback=@post_parsed) ->
+
+Because the requests are transparentely cached for us, we can rest
+peacefully knowing that the network will be involved at a minimal level.
+
             @get 'posts/index.txt', (data) =>
+                if not params.limit? then params.limit = 10
+
+The posts list will consist of every nonempty line from the index file.
+
                 @posts_list = _.filter data.split('\n'), (i) -> i? and i.length > 0
+
+Apart from just requesting the full unfiltered postlist, it is possible
+to process a list of posts after and before a certain post. 
+
                 if _.has(params, 'after')
-                    end = params.limit ? undefined
-                    @posts_list = @posts_list.slice(
-                        _.indexOf(@posts_list, decodeURIComponent(params.after)) + 1,
-                        end)
+                    next_location = _.indexOf(@posts_list,
+                        decodeURIComponent(params.after)) + 1
+                    @posts_list = @posts_list.slice(next_location,
+                        next_location + params.limit)
                 else if _.has(params, 'before')
                     end = _.indexOf(@posts_list, decodeURIComponent(params.before))
-                    begin = if params.limit then (end - params.limit) else 0
+                    begin = end - params.limit
                     @posts_list = @posts_list.slice(begin, end)
 
+We make sure that a right number of posts will be received, which is
+needed when neither after nor before parameter were specified. Each post
+is then scheduled to be parsed.
+
+                @posts_list = _.first @posts_list, params.limit
                 _.each @posts_list, _.partial(@parse_post, callback)
 
+Making some classes available to other files.
 
     window.Blog = Blog
     window.Theme = Theme
-    window.CachedAjax = CachedAjax
 
-<!-- vim:set tw=72:setlocal formatoptions-=t: -->
+<!-- vim:set tw=72:setlocal formatoptions-=c: -->
