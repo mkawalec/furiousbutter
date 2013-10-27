@@ -8,5 +8,4 @@ class Ostrich extends Theme
     render_post: (post, list) ->
         console.log(post, list)
 
-
 ostrich = new Ostrich()

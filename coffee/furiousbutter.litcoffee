@@ -284,8 +284,7 @@ is brave enough to take control of it. It gives the themes the ability
 to notify the backend of their existence, as well as some helper
 functionality. When writing a theme, inherit from this class.
 
-    class Theme extends Helpers
-        @include new CachedAjax()
+    class Theme extends CachedAjax
 
 All the registered themes sit in the **Theme**.themes object.
 Registering a new theme just adds a new entry with the theme class name
@@ -296,8 +295,8 @@ as key.
 
 Calls the callback with the parsed template data.
 
-        @get_theme: (blog, theme, ctx={}, callback=( -> )) ->
-            blog.get "themes/#{ blog.spec.theme }/html/#{ theme }.html", (data) ->
+        @get_theme: (blog, theme_part, ctx={}, callback=( -> )) ->
+            blog.get "themes/#{ blog.spec.theme }/html/#{ theme_part }.html", (data) ->
                 [header, body] = _.filter data.split('---'), (i) -> i.length > 0
 
 If there is no header section in the file being parsed the first element
