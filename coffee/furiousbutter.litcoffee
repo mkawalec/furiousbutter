@@ -436,7 +436,7 @@ is then scheduled to be parsed.
                 @posts_list = _.first @posts_list, params.limit
                 _.each @posts_list, _.partial(@parse_post, callback)
 
-Making some classes available to other files.
+Making some classes available globally.
 
     window.Blog = Blog
     window.Theme = Theme
