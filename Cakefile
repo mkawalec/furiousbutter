@@ -25,7 +25,7 @@ build = (callback) ->
     ls.stdout.on 'data', (data) ->
         console.log "Building the backend..."
         for row in data.toString().split('\n')
-            if not row.match /\.coffee/
+            if not row.match /\.litcoffee/
                 continue
             coffee = spawn 'coffee', ['-p', '-c', '-l', 'coffee/'+row]
             ((row) ->
