@@ -288,8 +288,8 @@ functionality. When writing a theme, inherit from this class.
         @include new CachedAjax()
 
 All the registered themes sit in the **Theme**.themes object.
-Registering a new theme just adds a new entry with the theme name as the
-key.
+Registering a new theme just adds a new entry with the theme class name
+as key.
 
         @themes = {}
         @register: (instance) -> Theme.themes[@name] = instance
@@ -326,8 +326,22 @@ after the index is rendered.
             @blog_instance = ctx
             Theme.get_theme @blog_instance, 'index', {}, callback
 
+### The Blog itself
+
+Now that we have all of the foundations ready, let's create the actual
+**Blog**. 
+
     class Blog extends CachedAjax
+
+All the **Blog** classes share the same **Cache** object, as we want
+cache access from class methods.
+
         @cache: new Cache()
+
+Template compilers (or renderers) that the **Blog** knows about sit
+inside the renderers attribute. By default the default *native* renderer
+is provided which uses *underscore.js* templates.
+
         @renderers: {
             native: (context, body) =>
                 compiled = Blog.cache.get(body)
@@ -337,21 +351,57 @@ after the index is rendered.
         @themes: {}
         posts: []
 
-        parse_data: (callback=( -> ), filename) =>
+An abstraction layer is needed for post parsing and is provided by the
+following.
+
+        parse_post: (callback=( -> ), filename) =>
             @get "posts/#{ filename }", (data) =>
+
+After getting the file contents parsing (which is relatively costly)
+should only be initiated if there is no cached version of the parsed
+post available in the **Blog**.cache.
+
+                if cached = Blog.cache.get(filename) then return callback cached
+
+A header section is obligatory for a post, while a lead is not. If there
+is no lead then the body and lead order must be inverted so that each
+contain correct data. A post needs at minimum only a header, additional
+information is optional.
+
                 [header, post] = _.filter data.split('---'), (i) -> i.length > 0
                 [lead, body] = post.split /^--$/
                 if not body? then [lead, body] = [body, lead]
 
+After parsing the header a ready to return object containing the parsed
+data is created, saved in the cache and passed as a first argument to
+the callback.
+
                 header = @parse_header header
-                callback {header: header, lead: marked(lead ? ''), \
+                cached = {header: header, lead: marked(lead ? ''), \
                     body: marked(body ? ''), filename: filename}
+
+                Blog.cache.set(filename, cached)
+                callback cached
+
+After each post is parsed it is fed to a currently selected theme to
+actually be displayed along with a parsed list of all the posts so that
+the frontend can properly align the post on a page.
 
         post_parsed: (post) => Theme.themes[@spec.theme].render_post post, @posts_list
 
         constructor: (@spec={}) ->
+
+If no default renderer is set through the runtime configuration, the
+'native' renderer is chosen as default.
+
             if not _.has(@spec, 'renderer') then @spec.renderer = 'native'
-            Theme.themes[@spec.theme].render_index @, @get_posts
+
+There is no need to set a default theme if only one theme is available,
+but it is useful if more are provided on the page.
+
+            theme = @spec.theme ? _.first _.keys Theme.themes
+            @spec.theme = theme
+            Theme.themes[theme].render_index @, @get_posts
 
         get_posts: (params={}, callback=@post_parsed) ->
             @get 'posts/index.txt', (data) =>
@@ -366,9 +416,9 @@ after the index is rendered.
                     begin = if params.limit then (end - params.limit) else 0
                     @posts_list = @posts_list.slice(begin, end)
 
-                _.each @posts_list, _.partial(@parse_data, callback)
+                _.each @posts_list, _.partial(@parse_post, callback)
 
-    window.Router = Router
+
     window.Blog = Blog
     window.Theme = Theme
     window.CachedAjax = CachedAjax
