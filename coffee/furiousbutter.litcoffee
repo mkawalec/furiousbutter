@@ -28,8 +28,8 @@ it is able to display stuff, it should be much more inclusive.
 ## TODO
 
 - [x] Finish documenting the code
-- [ ] Make the basic theme display useful stuff
 - [ ] Routes use Regular Expressions
+- [ ] Make the basic theme display useful stuff
 - [ ] Return promises as apart from accepting callbacks
 - [ ] Drop dependence on jQuery
 - [ ] Make the basic interace useful
@@ -44,7 +44,7 @@ like to interit from it too.
     class Helpers
 
 It is useful to be able to extend a class. And even more useful to add
-instance and class properties.
+instance and class properties without limit ('multiple inheritance').
 
         extend: (obj) ->
             for key, value of obj
@@ -120,7 +120,7 @@ with cache invaldation.
 
     class Cache
 
-Theere are two cache levels - the cache object available at
+There are two cache levels - the cache object available at
 **Cache**.cache and the *localStorage* cache. Former is used to provide
 fast access and the latter provides data persistence between page
 reloads. The downside of the current implementation is that both caches
@@ -151,9 +151,9 @@ Get an object with a given key, or an *undefined* if it doesn't exist.
                 else return Cache.cache[key].payload
             return undefined
 
-Set a value with a key and an optional timeout. Notice that setting the
-same key more than once will overwrite the value currently saved at this
-key.
+Set a value referenced by a key and an optional timeout. Notice that
+setting the same key more than once will overwrite the value currently
+saved at this key.
 
         set: (key, value, timeout=3600) ->
 
@@ -220,7 +220,7 @@ Shorthand versions of the above, should cater to 95% of usage scenarios.
 
 ### URI Routing
 
-A basic router is useful to bind a certain function to a specified URI.
+A basic router is useful to bind a certain functions to a specified URI.
 There is really nothing more that this class does.
 
     class Router extends Helpers
@@ -256,9 +256,9 @@ hard to find bugs, so just keep to using objects of keys.
 
 If it is an *Object*, set the parsed_params keys and values to those in
 the currently processed object. Remember that *Array* is also an
-*Object* and if *param* is and *Array* the keys will be the consecutive
+*Object* and if *param* is an *Array* the keys will be the consecutive
 array indexes. This **will** create conflicts if more than one array is
-provided in *params* splat.
+provided in *params*.
 
                 return _.extend parsed_params, _.foldl(param, (memo, value, key) ->
                     memo[key] = value
