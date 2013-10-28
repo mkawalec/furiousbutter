@@ -15,10 +15,16 @@ background.
 The more I think about it, the more I realize the amazing potential it
 could have - think about private blogs self-hosted on Dropbox. No more
 ads. No more being dependent on some kind of an external blogging
-platform.
+platform. 
 
 However, the code quality is still pretty rough and it only displays a
 text string now so think of it as a research project for now.
+
+There are hardly any benefits of this way of doing things over just
+having the blog rendered offline, and there are even slight
+disadvantages (though making people upgrade their browsers is more of an
+service to humanity). I expect this approach to gain a huge boost with
+the advent of WebRTC.
 
 ### Who is it for?
 
