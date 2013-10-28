@@ -27,7 +27,8 @@ it is able to display stuff, it should be much more inclusive.
 
 ## TODO
 
-- [ ] Finish documenting the code
+- [x] Finish documenting the code
+- [ ] Make the basic theme display useful stuff
 - [ ] Routes use Regular Expressions
 - [ ] Return promises as apart from accepting callbacks
 - [ ] Drop dependence on jQuery
