@@ -37,7 +37,8 @@ it is able to display stuff, it should be much more inclusive.
 ## TODO
 
 - [x] Finish documenting the code
-- [ ] Routes use Regular Expressions
+- [x] Routes use Regular Expressions
+- [ ] In-route parameters enclosed by '<' and '>'
 - [ ] Return promises as apart from accepting callbacks
 - [ ] Make the basic theme display useful stuff
 - [ ] Drop dependence on jQuery
