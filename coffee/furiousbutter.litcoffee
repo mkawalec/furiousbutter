@@ -461,5 +461,6 @@ Making some classes available globally.
 
     window.Blog = Blog
     window.Theme = Theme
+    window.Router = Router
 
 <!-- vim:set tw=72:setlocal formatoptions-=c: -->

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Furiousbutter test framework</title>
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/mocha/1.13.0/mocha.css" />
+    </head>
+
+    <body>
+        <div id="mocha"></div>
+
+        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/marked/0.2.9/marked.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/mocha/1.13.0/mocha.js"></script>
+        <script src="static/js/should.js"></script>
+        <!-- Include more libraries here, if needed -->
+
+        <script src="static/js/furiousbutter.js"></script>
+        <!-- Themes section. Include here the theme of your choice,
+        which should reside in themes/theme_name -->
+        <script src="themes/Ostrich/js/theme.js"></script>
+
+        <!-- The test framework -->
+        <script>mocha.setup('bdd');</script>
+        <script src="static/js/tests.js"></script>
+
+        <script>
+            mocha.checkLeaks();
+            mocha.globals(['jQuery', '_', 'Router', 'Blog', 'Theme']);
+            mocha.run();
+        </script>
+    </body>
+</html>
