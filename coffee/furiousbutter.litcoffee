@@ -236,11 +236,11 @@ There is really nothing more that this class does.
 
 Currently bound routes can be accessed at **Router**.routes.
 
-        @routes: {}
+        @routes: []
 
 Removes all the existing routes
 
-        @clear: -> Router.routes = {}
+        @clear: -> Router.routes = []
 
 Create a route for the function and return the provided function.
 
@@ -251,9 +251,9 @@ If a route that is the same already exists, the function will not add
 the new route and fail silently. I am unsure if this is a right thing to
 do. TODO.
 
-            unless _.some(_.keys(Router.routes), 
-                          (key) -> key.toString() == new_route.toString())
-                Router.routes[new_route] = fn
+            unless _.some(Router.routes, 
+                          (route) -> route.route.toString() == new_route.toString())
+                Router.routes.push {route: new_route, callback: fn}
 
 Navigates to the given route making sure that the parameters are
 correctly parsed. *params* can be any number of parameters that are
@@ -295,15 +295,21 @@ This method is the hashchange event processor and navigates to a route
 if **Router** knows about its existence.
 
         hashchange: (e) ->
-            e.preventDefault()
+            e?.preventDefault()
 
             [route, params] = @pull_params location.hash.slice(1)
 
-Execute the first function that matches the route.
+Execute the first function that matches the route. Provide some request
+data as context.
 
-            if (matching_route = _.find(Router.routes, (value, key) ->
-                if route.match key then return true else return false))?
-                matching_route(params)
+            if (matching_route = _.find(Router.routes, (value) ->
+                    if route.match value.route then return true else return false))?
+                matching_route.callback.call {
+                    route: route 
+                    route_pattern: matching_route.route
+                    params: params 
+                    event: e
+                }, params
 
 
 ### The themes controller

@@ -2,18 +2,17 @@ The test framework
 -----------------
 
     describe 'Router', ->
-
         describe 'route', ->
             it 'should add a new route correctly', (done) ->
                 router = new Router()
                 router.route 'test1', () -> done()
 
-                _.some(_.keys(Router.routes), (key) ->
-                    if key.toString() == (new RegExp 'test1').toString() 
+                _.some(Router.routes, (value) ->
+                    if value.route.toString() == (new RegExp 'test1').toString() 
                         return true
                     false).should.be.true
 
-                _.first(_.values Router.routes)() 
+                _.first(Router.routes).callback() 
 
             it 'should not add a route if the same route exists', ->
                 router = new Router()
@@ -22,8 +21,28 @@ The test framework
                 router.route 'correct', () -> 'I am the one'
                 router.route 'correct', () -> 'I am wrong'
 
-                _.keys(Router.routes).should.have.lengthOf 1
-                _.first(_.values Router.routes)().should.eql 'I am the one'
+                Router.routes.should.have.lengthOf 1
+                _.first(Router.routes).callback().should.eql 'I am the one'
+
+            it 'should support regex routes', (done) ->
+                router = new Router()
+                Router.clear()
+
+                counter = 0
+                router.route 'a?bc', () ->
+                    console.log 'called', @route
+                    if counter > 0
+                        @route.should.eql 'abc'
+                        done()
+                    else
+                        @route.should.eql 'bc'
+
+                    counter += 1
+
+                router.goto 'bc'
+                router.hashchange()
+                router.goto 'abc'
+                router.hashchange()
 
         describe 'clear', ->
             it 'should remove all routes', ->
@@ -31,7 +50,7 @@ The test framework
                 router.route 'test1', () -> done()
                 Router.clear()
 
-                _.keys(Router.routes).should.have.lengthOf 0
+                Router.routes.should.have.lengthOf 0
 
         describe 'goto', ->
             set_router = (route, fn) ->
