@@ -237,6 +237,10 @@ Currently bound routes can be accessed at **Router**.routes.
 
         @routes: {}
 
+Removes all the existing routes
+
+        @clear: -> Router.routes = {}
+
 Create a route for the function and return the provided function.
 
         route: (route, fn) -> 
@@ -246,8 +250,9 @@ If a route that is the same already exists, the function will not add
 the new route and fail silently. I am unsure if this is a right thing to
 do. TODO.
 
-            Router.routes[new_route] = unless _.some(_.keys(Router.routes), 
-            (key) -> key.toString() == new_route.toString()) then fn
+            unless _.some(_.keys(Router.routes), 
+                          (key) -> key.toString() == new_route.toString())
+                Router.routes[new_route] = fn
 
 Navigates to the given route making sure that the parameters are
 correctly parsed. *params* can be any number of parameters that are
@@ -298,6 +303,7 @@ Execute the first function that matches the route.
             if (matching_route = _.find(Router.routes, (value, key) ->
                 if route.match key then return true else return false))?
                 matching_route(params)
+
 
 ### The themes controller
 
