@@ -39,10 +39,10 @@ it is able to display stuff, it should be much more inclusive.
 - [x] Finish documenting the code
 - [x] Routes use Regular Expressions
 - [ ] In-route parameters enclosed by '<' and '>'
-- [ ] Return promises as apart from accepting callbacks
+- [ ] Custom parameters processors
+- [ ] Return promises apart from accepting callbacks
 - [ ] Make the basic theme display useful stuff
 - [ ] Drop dependence on jQuery
-- [ ] Make the basic interace useful
 
 ### Useful functions
 
@@ -119,6 +119,16 @@ whitespace is trimmed.
                         memo[prop] = _.each memo[prop].split(','), (i) -> $.trim i
                     return memo
             , {})
+
+        expand_params: (route) ->
+            matcher = route.replace /<[\w%]+>/g, "(\\w+)"
+            params = _.foldl route.match(/<[\w%]+>/g), (memo, param) ->
+                memo.push _.first param.match /[\w%]+/
+                memo
+            , []
+
+            return {matcher: new RegExp(matcher), params: params}
+                
 
 ### Client side-cache
 
@@ -245,15 +255,24 @@ Removes all the existing routes
 Create a route for the function and return the provided function.
 
         route: (route, fn) -> 
-            new_route = new RegExp route
+            if typeof route == 'object'
+                route = route.toString().replace /\\/g, "\\\\"
+                if _.first(route) == '/' and _.last(route) == '/'
+                    route = route.slice 1, route.length - 1
 
 If a route that is the same already exists, the function will not add
 the new route and fail silently. I am unsure if this is a right thing to
 do. TODO.
 
-            unless _.some(Router.routes, 
-                          (route) -> route.route.toString() == new_route.toString())
-                Router.routes.push {route: new_route, callback: fn}
+            expanded = @expand_params route
+            unless _.some(Router.routes, (route) -> 
+                    route.route.toString() == expanded.matcher.toString())
+                Router.routes.push {
+                    pattern: new RegExp route
+                    route: expanded.matcher
+                    params: expanded.params
+                    callback: fn
+                }
 
 Navigates to the given route making sure that the parameters are
 correctly parsed. *params* can be any number of parameters that are
@@ -304,9 +323,25 @@ data as context.
 
             if (matching_route = _.find(Router.routes, (value) ->
                     if route.match value.route then return true else return false))?
+
+                params_indexes = _.foldl(matching_route.route.toString().match(/\(.*?\)/g), 
+                    (memo, value, index) ->
+                        if value == '(\\w+)' then memo.push index
+                        memo
+                    , []
+                    )
+
+                _.extend(params, _.foldl params_indexes, (memo, index,
+                    param_index) ->
+                        memo[matching_route.params[param_index]] = 
+                            route.match(matching_route.route)[index+1]
+                        memo
+                , {}
+                )
+
                 matching_route.callback.call {
-                    route: route 
-                    route_pattern: matching_route.route
+                    route: route
+                    route_pattern: matching_route.pattern
                     params: params 
                     event: e
                 }, params

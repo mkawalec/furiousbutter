@@ -29,19 +29,18 @@ The test framework
                 Router.clear()
 
                 counter = 0
-                router.route 'a?bc', () ->
-                    console.log 'called', @route
+                router.route 'a?bc/<par1>', () ->
                     if counter > 0
-                        @route.should.eql 'abc'
+                        @route.should.eql 'abc/value2'
                         done()
                     else
-                        @route.should.eql 'bc'
+                        @route.should.eql 'bc/value1'
 
                     counter += 1
 
-                router.goto 'bc'
+                router.goto 'bc/value1'
                 router.hashchange()
-                router.goto 'abc'
+                router.goto 'abc/value2'
                 router.hashchange()
 
         describe 'clear', ->
