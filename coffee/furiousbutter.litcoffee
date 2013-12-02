@@ -26,6 +26,9 @@ disadvantages (though making people upgrade their browsers is more of an
 service to humanity). I expect this approach to gain a huge boost with
 the advent of WebRTC.
 
+So generally, the conclusion here is: it is awesome and can have some
+practical uses by accident.
+
 ### Who is it for?
 
 At the current stage, purely for JS and CoffeeScript hackers. But after
@@ -35,17 +38,16 @@ it is able to display stuff, it should be much more inclusive.
 
 - [x] Finish documenting the code
 - [ ] Routes use Regular Expressions
-- [ ] Make the basic theme display useful stuff
 - [ ] Return promises as apart from accepting callbacks
+- [ ] Make the basic theme display useful stuff
 - [ ] Drop dependence on jQuery
 - [ ] Make the basic interace useful
-- [ ] Add a Backbone interface (rendering engine)
 
 ### Useful functions
 
 Almost every furiousbutter class inherits the basic helper functions
 from here. If you write your own extension you will most probably
-like to interit from it too.
+like to inherit from it too.
 
     class Helpers
 
@@ -122,7 +124,7 @@ whitespace is trimmed.
 As we want to limit the server requests to minimum, every data request
 is passed through a **Cache** that saves its results for a certain time.
 And because the blog only issues GET requests there is no need to deal
-with cache invaldation.
+with cache invalidation.
 
     class Cache
 
@@ -141,7 +143,7 @@ The *localStorage* key under which the contents of @cache are saved.
 
         constructor: ->
 
-We want to only use the localstorage if it is available in the browser.
+We want to only use the localStorage if it is available in the browser.
 If it is, schedule the change persister method to be executed every 3
 seconds and load the last cache state (if it exists).
 
@@ -237,7 +239,15 @@ Currently bound routes can be accessed at **Router**.routes.
 
 Create a route for the function and return the provided function.
 
-        route: (route, fn) -> Router.routes[route] = fn
+        route: (route, fn) -> 
+            new_route = new RegExp route
+
+If a route that is the same already exists, the function will not add
+the new route and fail silently. I am unsure if this is a right thing to
+do. TODO.
+
+            Router.routes[new_route] = unless _.some(_.keys(Router.routes), 
+            (key) -> key.toString() == new_route.toString()) then fn
 
 Navigates to the given route making sure that the parameters are
 correctly parsed. *params* can be any number of parameters that are
@@ -254,7 +264,7 @@ calling the function.
 
 If the parameter being parsed is neither an *Object* nor an *Array* just set
 the parameter key to the value of the parameter. This can cause various
-hard to find bugs, so just keep to using objects of keys.
+hard to find bugs, so try to avid using such parameters.
 
                 if typeof param != "object"
                     parsed_params[param] = param
@@ -282,7 +292,12 @@ if **Router** knows about its existence.
             e.preventDefault()
 
             [route, params] = @pull_params location.hash.slice(1)
-            if _.has(Router.routes, route) then Router.routes[route](params)
+
+Execute the first function that matches the route.
+
+            if (matching_route = _.find(Router.routes, (value, key) ->
+                if route.match key then return true else return false))?
+                matching_route(params)
 
 ### The themes controller
 
