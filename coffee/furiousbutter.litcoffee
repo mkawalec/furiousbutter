@@ -222,7 +222,7 @@ it is provided. It gets the data from the **Cache** if it exists there or
 saves it in **Cache** before executing the success callback if a network
 request is needed.
 
-        ajax: (params, timeout) =>
+        ajax: (params, cache_timeout) =>
             new Promise (resolve, reject) =>
                 if @cache.get(params.url) 
                     cached = @cache.get params.url
@@ -230,13 +230,16 @@ request is needed.
                     resolve cached
                 else
                     params.success = ((callback) => (data) =>
-                        @cache.set(params.url, data, timeout)
+                        @cache.set(params.url, data, cache_timeout)
 
                         callback? data
                         resolve data
                     )(params.success)
 
-                    params.error = reject
+                    params.error = ((error) -> ->
+                        error?.apply @, arguments
+                        reject()
+                    )(params.error)
 
                     $.ajax params
 
@@ -531,10 +534,11 @@ is then scheduled to be parsed.
 
 Making some classes available globally.
 
-    window.Blog     = Blog
-    window.Theme    = Theme
-    window.Router   = Router
-    window.Helpers  = Helpers
-    window.Cache    = Cache
+    window.Blog         = Blog
+    window.Theme        = Theme
+    window.Router       = Router
+    window.Helpers      = Helpers
+    window.Cache        = Cache
+    window.CachedAjax   = CachedAjax
 
 <!-- vim:set tw=72:setlocal formatoptions-=c: -->

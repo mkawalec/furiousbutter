@@ -152,6 +152,49 @@ The test framework
                     done()
                 , 11
 
+    describe 'CachedAjax', ->
+        cached = new CachedAjax
+
+        describe 'ajax', ->
+            it 'should get local data correctly (callback)', (done) ->
+                cached.ajax {
+                    url: 'README.md'
+                    success: (data) ->
+                        data.should.include 'CachedAjax'
+                        done()
+                    error: ->
+                        throw "The file should be available"
+                        done()
+                }
+
+            it 'should get local data correctly (promise)', (done) ->
+                req = cached.ajax {url: 'README.md'}
+                req.then( (data) ->
+                    data.should.include 'CachedAjax'
+                    done()
+                ).catch (e) ->
+                    throw "The file should be available"
+                    done()
+
+            it 'should fail on invalid address (callback)', (done) ->
+                cached.ajax {
+                    url: 'invalid'
+                    success: ->
+                        throw "This file should not be accessible"
+                        done()
+                    error: ->
+                        done()
+                }
+
+            it 'should fail on invalid address (promise)', (done) ->
+                req = cached.ajax {url: 'invalid'}
+                req.then( ->
+                    throw "This file should not be accessible"
+                    done()
+                ).catch (e) ->
+                    done()
+
+
     describe 'Router', ->
         describe 'route', ->
             it 'should add a new route correctly', (done) ->
