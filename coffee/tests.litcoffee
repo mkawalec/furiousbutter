@@ -18,8 +18,8 @@ The test framework
                 router = new Router()
                 Router.clear()
 
-                router.route 'correct', () -> 'I am the one'
-                router.route 'correct', () -> 'I am wrong'
+                router.route 'correct',  -> 'I am the one'
+                router.route 'correct',  -> 'I am wrong'
 
                 Router.routes.should.have.lengthOf 1
                 _.first(Router.routes).callback().should.eql 'I am the one'
@@ -54,6 +54,17 @@ The test framework
 
                 router.goto 'ba/value1/c/value2'
                 router.hashchange()
+
+            it 'should not add a route if the only difference 
+                between old and new routes is parameter name', ->
+                    router = new Router()
+                    Router.clear()
+
+                    router.route '<param1>', -> 'Old'
+                    router.route '<param2>', -> 'new'
+
+                    Router.routes.should.have.lengthOf 1
+                    _.first(Router.routes).callback().should.eql 'Old'
 
         describe 'clear', ->
             it 'should remove all routes', ->

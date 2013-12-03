@@ -120,6 +120,10 @@ whitespace is trimmed.
                     return memo
             , {})
 
+A final route regular expression needs generation, with inline
+parameters expanded into a matching blocks. Also, the parameter names
+are returned, to enable us to easily reference them later.
+
         expand_params: (route) ->
             matcher = route.replace /<[\w%]+>/g, "(\\w+)"
             params = _.foldl route.match(/<[\w%]+>/g), (memo, param) ->
