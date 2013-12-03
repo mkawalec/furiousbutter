@@ -34,13 +34,14 @@ practical uses by accident.
 At the current stage, purely for JS and CoffeeScript hackers. But after
 it is able to display stuff, it should be much more inclusive.
 
-## TODO
+## TODO for first release
 
 - [x] Finish documenting the code
 - [x] Routes use Regular Expressions
-- [ ] In-route parameters enclosed by '<' and '>'
+- [x] In-route parameters enclosed by '<' and '>'
 - [ ] Custom parameters processors
 - [ ] Return promises apart from accepting callbacks
+- [ ] Add a plug-ins architecture
 - [ ] Make the basic theme display useful stuff
 - [ ] Drop dependence on jQuery
 
