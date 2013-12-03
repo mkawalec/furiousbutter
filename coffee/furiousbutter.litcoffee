@@ -43,7 +43,7 @@ it is able to display stuff, it should be much more inclusive.
 - [ ] Add a plug-ins architecture
 - [ ] Tests for every function
 - [ ] Make the basic theme display useful stuff
-- [ ] Drop dependence on jQuery
+- [ ] window.feed(type='atom') should return a feed of a given type
 
 ### Useful functions
 
@@ -152,19 +152,27 @@ The *localStorage* key under which the contents of @cache are saved.
 
         @storage_key = 'FuriousButter'
 
+Remove all the cached information if called.
+        
+        @clear: ->
+            @cache = {}
+            localStorage.removeItem Cache.storage_key
+
         constructor: ->
 
 We want to only use the localStorage if it is available in the browser.
-If it is, schedule the change persister method to be executed every 3
-seconds and load the last cache state (if it exists).
+If it is, schedule the change persister method to be executed every set
+time and load the last cache state (if it exists).
 
             if window.localStorage?
-                setInterval @persist, 3000
+                setInterval @persist, 1000
                 Cache.cache = JSON.parse (localStorage[Cache.storage_key] ? '{}')
 
 Get an object with a given key, or an *undefined* if it doesn't exist.
 
         get: (key) ->
+            key = if typeof key == 'string' then key else JSON.stringify key
+
             if _.has(Cache.cache, key)
                 if @timeout(key) then delete Cache.cache[key]
                 else return Cache.cache[key].payload
@@ -175,6 +183,7 @@ setting the same key more than once will overwrite the value currently
 saved at this key.
 
         set: (key, value, timeout=3600) ->
+            key = if typeof key == 'string' then key else JSON.stringify key
 
 Mark the cache persistable and return the saved cache object.
 
@@ -518,5 +527,6 @@ Making some classes available globally.
     window.Theme    = Theme
     window.Router   = Router
     window.Helpers  = Helpers
+    window.Cache    = Cache
 
 <!-- vim:set tw=72:setlocal formatoptions-=c: -->

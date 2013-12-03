@@ -28,7 +28,8 @@
 
         <script>
             mocha.checkLeaks();
-            mocha.globals(['jQuery', '_', 'Router', 'Blog', 'Theme', 'Helpers']);
+            mocha.globals(['jQuery', '_', 'Router', 'Blog', 
+                    'Theme', 'Helpers', 'Cache']);
             mocha.run();
         </script>
     </body>

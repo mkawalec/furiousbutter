@@ -79,6 +79,78 @@ The test framework
                 matched = helpers.expand_params '<first>/<second>'
                 'hi/hey'.match(matched.matcher).should.have.lengthOf 3
 
+    describe 'Cache', ->
+        cache = new Cache
+
+        describe 'get', ->
+            it 'should return nothing when the cache is empty', ->
+                Cache.clear()
+
+                cases = ['', 'a', 'c', undefined, 0, 1, true, false]
+                _.each cases, (test_case) ->
+                    if cache.get(test_case) != undefined
+                        throw "Cache returns a value for #{test_case}"
+                
+        describe 'set', ->
+            it 'should save simple values', ->
+                cache.set 'key', 'value'
+                cache.set 'key2', 2
+
+                cache.get('key').should.equal 'value'
+                cache.get('key2').should.equal 2
+
+            it 'should have working timeout', (done) ->
+                cache.set 'key3', 3, 0.01
+                cache.get('key3').should.equal 3
+
+                setTimeout( -> 
+                    if cache.get('key3') != undefined
+                        throw "Cache returns values for key3!"
+                    done()
+                , 11)
+
+            it 'should persist objects correctly', ->
+                cache.set 'obj', {param: 'value'}
+                cache.get('obj').should.eql {param: 'value'}
+
+            it 'should support non-string keys', ->
+                cache.set {param: 'first'}, 1
+                cache.set {param: 'second'}, 2
+                cache.set /third/, 3
+
+                cache.get({param: 'first'}).should.eql 1
+                cache.get({param: 'second'}).should.eql 2
+                cache.get(/third/).should.eql 3
+
+        describe 'clear', ->
+            it 'should clear both the persisted and non-persisted caches', ->
+                Cache.clear()
+                cache.set 'key', 'value'
+                Cache.clear()
+                _.keys(Cache.cache).should.not.include 'key'
+                _.keys(JSON.parse(window.localStorage[Cache.storage_key] ? '{}')).\
+                    should.not.include 'key'
+
+        describe 'persist', ->
+            it 'should persist the cache correctly', ->
+                Cache.clear()
+                cache.set 'new_key', 'new_value'
+                cache.persist()
+
+                parsed = JSON.parse(window.localStorage[Cache.storage_key])
+                _.keys(parsed).should.include 'new_key'
+                parsed['new_key'].payload.should.eql 'new_value'
+
+        describe 'timeout', ->
+            it 'should correctly say if a key has reached its timeout', (done) ->
+                Cache.clear()
+                cache.set 'key', 'value', 0.01
+                cache.timeout('key').should.eql false
+
+                setTimeout ->
+                    cache.timeout('key').should.eql true
+                    done()
+                , 11
 
     describe 'Router', ->
         describe 'route', ->
@@ -205,12 +277,3 @@ The test framework
                 router = set_router()
                 router.goto 'wrong_one'
                 window.location.hash.should.include 'wrong_one'
-
-
-
-                
-
-
-
-
-
