@@ -125,7 +125,7 @@ parameters expanded into a matching blocks. Also, the parameter names
 are returned, to enable us to easily reference them later.
 
         expand_params: (route) ->
-            matcher = route.replace /<[\w%]+>/g, "(\\w+)"
+            matcher = route.replace /<[\w%]+>/g, "(\\w+.{0})"
             params = _.foldl route.match(/<[\w%]+>/g), (memo, param) ->
                 memo.push _.first param.match /[\w%]+/
                 memo
@@ -333,7 +333,7 @@ inline parameters and get their indexes.
 
                 params_indexes = _.foldl(matching_route.route.toString().match(/\(.*?\)/g), 
                     (memo, value, index) ->
-                        if value == '(\\w+)' then memo.push index
+                        if value == '(\\w+.{0})' then memo.push index
                         memo
                     , []
                     )
