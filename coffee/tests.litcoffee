@@ -1,6 +1,85 @@
 The test framework
 -----------------
 
+    describe 'Helpers', ->
+        helpers = new Helpers
+
+        describe 'extend', ->
+            it 'should add functions as instance members', ->
+                class Test extends Helpers
+
+                test = new Test()
+                test.extend {blah: -> 'hi'}
+                _.keys(test).should.include 'blah'
+                _.keys(Test).should.not.include 'blah'
+
+        describe 'pull_params', ->
+            it 'should deal with no-params routes', ->
+                [addr, params] = helpers.pull_params 'i_am_a_route'
+                addr.should.eql 'i_am_a_route'
+                params.should.eql {}
+
+            it 'should deal with no-route route', ->
+                [addr, params] = helpers.pull_params '?param=value'
+                addr.should.eql ''
+                params.should.include {param: 'value'}
+
+            it 'should accept multiple params', ->
+                [addr, params] = helpers.pull_params 'hi?first=1&second=2'
+
+                addr.should.eql 'hi'
+                params.should.include {first: '1', second: '2'}
+
+            it 'should parse empty route correctly', ->
+                [addr, params] = helpers.pull_params ''
+
+                addr.should.eql ''
+                params.should.eql {}
+
+        describe 'add_params', ->
+            it 'should preserve a route with no added params', ->
+                route = helpers.add_params 'hi?first=second'
+                route.should.eql 'hi?first=second'
+
+            it 'should add params to a no-params containing route', ->
+                # One param
+                route = helpers.add_params 'hi', {first: 'value'}
+                route.should.eql 'hi?first=value'
+
+                # Multiple params
+                route = helpers.add_params 'hi', {first: 'value1', second: 'value2'}
+                route.should.eql 'hi?first=value1&second=value2'
+
+            it 'should merge with existing params', ->
+                # One preexisting
+                route = helpers.add_params 'hi?original=value', {new: 'new_val'}
+                route.should.eql 'hi?original=value&new=new_val'
+
+                # Multiple preexisting
+                route = helpers.add_params 'hi?a=a&b=b', {c: 'c'}
+                route.should.eql 'hi?a=a&b=b&c=c'
+
+            it 'should work correctly with pull_params', ->
+                [addr, params] = helpers.pull_params helpers.add_params(
+                    'hi', {first: 1, second: 2})
+
+                addr.should.eql 'hi'
+                params.should.include {first: '1', second: '2'}
+
+        describe 'expand_params', ->
+            it 'should return a matcher and a params array', ->
+                matched = helpers.expand_params ''
+                _.keys(matched).should.include 'matcher'
+                _.keys(matched).should.include 'params'
+
+            it 'should expand simple params cases correctly', ->
+                matched = helpers.expand_params '<first>'
+                'hello'.match(matched.matcher).should.have.lengthOf 2
+
+                matched = helpers.expand_params '<first>/<second>'
+                'hi/hey'.match(matched.matcher).should.have.lengthOf 3
+
+
     describe 'Router', ->
         describe 'route', ->
             it 'should add a new route correctly', (done) ->

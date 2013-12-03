@@ -39,9 +39,9 @@ it is able to display stuff, it should be much more inclusive.
 - [x] Finish documenting the code
 - [x] Routes use Regular Expressions
 - [x] In-route parameters enclosed by '<' and '>'
-- [ ] Custom parameters processors
 - [ ] Return promises apart from accepting callbacks
 - [ ] Add a plug-ins architecture
+- [ ] Tests for every function
 - [ ] Make the basic theme display useful stuff
 - [ ] Drop dependence on jQuery
 
@@ -53,16 +53,11 @@ like to inherit from it too.
 
     class Helpers
 
-It is useful to be able to extend a class. And even more useful to add
-instance and class properties without limit ('multiple inheritance').
+It is useful to be able to extend a class. 
 
         extend: (obj) ->
             for key, value of obj
                 @[key] = value
-
-        @include: (obj) ->
-            for key, value of obj
-                @::[key] = value
 
 When routing it is of great help to extract the address and url-decoded
 parameters from an URI.
@@ -91,7 +86,7 @@ containing all of them and then decoded from URI representation
 Of course extracting the parameters is just half of the job - we want to
 be able to create the parameter-containing addresses.
 
-        add_params: (route, params) ->
+        add_params: (route, params={}) ->
             _.each params, (value, key) ->
 
 The first parameter needs to be separated from the address by ?, while
@@ -519,8 +514,9 @@ is then scheduled to be parsed.
 
 Making some classes available globally.
 
-    window.Blog = Blog
-    window.Theme = Theme
-    window.Router = Router
+    window.Blog     = Blog
+    window.Theme    = Theme
+    window.Router   = Router
+    window.Helpers  = Helpers
 
 <!-- vim:set tw=72:setlocal formatoptions-=c: -->
