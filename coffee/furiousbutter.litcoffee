@@ -39,9 +39,9 @@ it is able to display stuff, it should be much more inclusive.
 - [x] Finish documenting the code
 - [x] Routes use Regular Expressions
 - [x] In-route parameters enclosed by '<' and '>'
-- [ ] Return promises apart from accepting callbacks
+- [x] Return promises apart from accepting callbacks
 - [ ] Add a plug-ins architecture
-- [ ] Tests for every function
+- [ ] Complete tests for every function
 - [ ] Make the basic theme display useful stuff
 - [ ] window.feed(type='atom') should return a feed of a given type
 
