@@ -29,18 +29,30 @@ The test framework
                 Router.clear()
 
                 counter = 0
-                router.route 'a?bc/<par1>', () ->
+                router.route 'a?bc', () ->
                     if counter > 0
-                        @route.should.eql 'abc/value2'
+                        @route.should.eql 'abc'
                         done()
                     else
-                        @route.should.eql 'bc/value1'
+                        @route.should.eql 'bc'
 
                     counter += 1
 
-                router.goto 'bc/value1'
+                router.goto 'bc'
                 router.hashchange()
-                router.goto 'abc/value2'
+                router.goto 'abc'
+                router.hashchange()
+
+            it 'should support inline parameters', (done) ->
+                router = new Router()
+                Router.clear()
+
+                router.route 'b(a|m)/<param1>/(c|d)/<param2>', (params) ->
+                    params.should.include {param1: 'value1'}
+                    params.should.include {param2: 'value2'}
+                    done()
+
+                router.goto 'ba/value1/c/value2'
                 router.hashchange()
 
         describe 'clear', ->

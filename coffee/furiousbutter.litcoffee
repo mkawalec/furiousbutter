@@ -324,12 +324,17 @@ data as context.
             if (matching_route = _.find(Router.routes, (value) ->
                     if route.match value.route then return true else return false))?
 
+Find out which parentheses inside router regular expression contain
+inline parameters and get their indexes.
+
                 params_indexes = _.foldl(matching_route.route.toString().match(/\(.*?\)/g), 
                     (memo, value, index) ->
                         if value == '(\\w+)' then memo.push index
                         memo
                     , []
                     )
+
+Add the values of correct parameters to the parameters object.
 
                 _.extend(params, _.foldl params_indexes, (memo, index,
                     param_index) ->
@@ -338,6 +343,8 @@ data as context.
                         memo
                 , {}
                 )
+
+Call the matching route with some parameters as context.
 
                 matching_route.callback.call {
                     route: route
