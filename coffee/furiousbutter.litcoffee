@@ -486,7 +486,7 @@ information is optional.
 
 After parsing the header a ready to return object containing the parsed
 data is created, saved in the cache and passed as a first argument to
-the callback.
+the callback/promise.
 
                     header = @parse_header header
                     cached = {header: header, lead: marked(lead ? ''), \
@@ -498,7 +498,7 @@ the callback.
 
 After each post is parsed it is fed to a currently selected theme to
 actually be displayed along with a parsed list of all the posts so that
-the frontend can properly align the post on a page.
+the front end can properly align the post on a page.
 
         post_parsed: (post) => Theme.themes[@spec.theme].render_post post, @posts_list
 
