@@ -169,10 +169,10 @@ The test framework
 
             it 'should get local data correctly (promise)', (done) ->
                 req = cached.ajax {url: 'README.md'}
-                req.then( (data) ->
+                req.then (data) ->
                     data.should.include 'CachedAjax'
                     done()
-                ).catch (e) ->
+                .catch (e) ->
                     throw "The file should be available"
                     done()
 
@@ -188,10 +188,10 @@ The test framework
 
             it 'should fail on invalid address (promise)', (done) ->
                 req = cached.ajax {url: 'invalid'}
-                req.then( ->
+                req.then ->
                     throw "This file should not be accessible"
                     done()
-                ).catch (e) ->
+                .catch (e) ->
                     done()
 
 

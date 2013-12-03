@@ -218,13 +218,17 @@ delete) are provided for completeness sake.
         cache: new Cache
 
 The full-blown cached version of jQuery ajax is needed at times and so
-it is provided. It gets the data from the **Cache** if it exists there or
-saves it in **Cache** before executing the success callback if a network
+it is provided. It gets the data from **Cache** if it exists there or
+saves in **Cache** before executing the success callback if a network
 request is needed.
 
         ajax: (params, cache_timeout) =>
             new Promise (resolve, reject) =>
                 if @cache.get(params.url) 
+
+If the data exists in the cache, complete the Promise and call the
+callback, if it exists.
+
                     cached = @cache.get params.url
                     params.success? cached
                     resolve cached
@@ -235,6 +239,9 @@ request is needed.
                         callback? data
                         resolve data
                     )(params.success)
+
+The Promise needs to be notified if an error occurs. If an error handler
+is provided in the params, it should be called too.
 
                     params.error = ((error) -> ->
                         error?.apply @, arguments
@@ -393,26 +400,32 @@ as key.
 Calls the callback with the parsed template data.
 
         @get_theme: (blog, theme_part, ctx={}, callback=( -> )) ->
-            blog.get "themes/#{ blog.spec.theme }/html/#{ theme_part }.html", (data) ->
-                [header, body] = _.filter data.split('---'), (i) -> i.length > 0
+            new Promise (resolve, reject) =>
+                blog.get("themes/#{ blog.spec.theme }/html/#{ theme_part }.html").\
+                        then (data) ->
+                    [header, body] = _.filter data.split('---'), (i) -> i.length > 0
 
 If there is no header section in the file being parsed the first element
 returned by the *\_.filter* above will be the theme body. We need to
 exchange the element order in such a case
 
-                if not body? then [header, body] = [body, header]
+                    if not body? then [header, body] = [body, header]
 
 Render with the renderer provided in the renderer section of theme
 header or, if no rendering method is provided, render with the default
 method for the current blog.
 
-                renderer = blog.spec.renderer
-                if header? and _.has(header, 'renderer') then renderer = header.renderer
+                    renderer = blog.spec.renderer
+                    if header? and _.has(header, 'renderer') then renderer = header.renderer
 
 Parse the theme body and call the callback with that data.
                     
-                data = Blog.renderers[renderer] ctx, body
-                callback.call blog, data
+                    data = Blog.renderers[renderer] ctx, body
+
+                    callback?.call blog, data
+                    resolve blog, data
+                .catch (e) ->
+                    reject e
 
 This method is called by the **Blog** when it wants to render a
 template. The callback points to the action the blog wants to invoke
@@ -451,33 +464,37 @@ An abstraction layer is needed for post parsing and is provided by the
 following.
 
         parse_post: (callback=( -> ), filename) =>
-            @get "posts/#{ filename }", (data) =>
+            new Promise (resolve, reject) =>
+                @get("posts/#{ filename }").then (data) =>
 
 After getting the file, contents parsing (which is relatively costly)
 should only be initiated if there is no cached version of the parsed
 post available in the **Blog**.cache.
 
-                if cached = Blog.cache.get(filename) then return callback cached
+                    if cached = Blog.cache.get(filename) 
+                        callback? cached
+                        return resolve cached
 
 A header section is obligatory for a post, while a lead is not. If there
 is no lead then the body and lead order must be inverted so that each
 contain correct data. A post needs at minimum only a header, additional
 information is optional.
 
-                [header, post] = _.filter data.split('---'), (i) -> i.length > 0
-                [lead, body] = post.split /^--$/
-                if not body? then [lead, body] = [body, lead]
+                    [header, post] = _.filter data.split('---'), (i) -> i.length > 0
+                    [lead, body] = post.split /^--$/
+                    if not body? then [lead, body] = [body, lead]
 
 After parsing the header a ready to return object containing the parsed
 data is created, saved in the cache and passed as a first argument to
 the callback.
 
-                header = @parse_header header
-                cached = {header: header, lead: marked(lead ? ''), \
-                    body: marked(body ? ''), filename: filename}
+                    header = @parse_header header
+                    cached = {header: header, lead: marked(lead ? ''), \
+                        body: marked(body ? ''), filename: filename}
 
-                Blog.cache.set(filename, cached)
-                callback cached
+                    Blog.cache.set(filename, cached)
+                    callback? cached
+                    resolve cached
 
 After each post is parsed it is fed to a currently selected theme to
 actually be displayed along with a parsed list of all the posts so that
