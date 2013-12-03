@@ -40,9 +40,10 @@ it is able to display stuff, it should be much more inclusive.
 - [x] Routes use Regular Expressions
 - [x] In-route parameters enclosed by '<' and '>'
 - [x] Return promises apart from accepting callbacks
-- [ ] Add a plug-ins architecture
+- [x] Add a plug-ins architecture
 - [ ] Complete tests for every function
 - [ ] Make the basic theme display useful stuff
+- [ ] Split the code on readable parts using Browserify
 - [ ] window.feed(type='atom') should return a feed of a given type
 
 ### Useful functions
@@ -129,7 +130,6 @@ are returned, to enable us to easily reference them later.
 
             return {matcher: new RegExp(matcher), params: params}
                 
-
 ### Client side-cache
 
 As we want to limit the server requests to minimum, every data request
@@ -435,6 +435,20 @@ after the index is rendered.
             @blog_instance = ctx
             Theme.get_theme @blog_instance, 'index', {}, callback
 
+### Plug-ins
+
+Interchangeable pieces of code that can bind to the main program and
+execute their code at a certain moment in program execution. Every
+FB-compatible plugin should inherit from the following class.
+
+Currently available jQuery event hooks are (with "furb." prefix):
+- blog.created
+- before.posts.read
+- after.posts.read
+
+The events are triggered on *document*, and they should bubble up
+
+
 ### The Blog itself
 
 Now that we have all of the foundations ready, let's create the actual
@@ -463,7 +477,7 @@ is provided which uses *underscore.js* templates.
 An abstraction layer is needed for post parsing and is provided by the
 following.
 
-        parse_post: (callback=( -> ), filename) =>
+        parse_post: (filename, callback=( -> )) =>
             new Promise (resolve, reject) =>
                 @get("posts/#{ filename }").then (data) =>
 
@@ -514,6 +528,8 @@ but it is useful if more are provided on the page.
 
             if not @spec.theme? then @spec.theme = _.first _.keys Theme.themes
             Theme.themes[@spec.theme].render_index @, @get_posts
+            
+            $(document).trigger 'furb.blog.created'
 
 And finally, we need a method to actually get the posts
 
@@ -523,7 +539,8 @@ Because the requests are transparentely cached for us, we can rest
 peacefully knowing that the network will be involved at a minimal level.
 
             @get 'posts/index.txt', (data) =>
-                if not params.limit? then params.limit = 10
+                $(document).trigger 'furb.before.posts.read'
+                params.limit = params.limit ? 10
 
 The posts list will consist of every nonempty line from the index file.
 
@@ -546,8 +563,14 @@ We make sure that a right number of posts will be received, which is
 needed when neither after nor before parameter were specified. Each post
 is then scheduled to be parsed.
 
+After the last post is parsed, the 'after\_posts\_read' hook providing
+plugins are called
+
                 @posts_list = _.first @posts_list, params.limit
-                _.each @posts_list, _.partial(@parse_post, callback)
+                _.each @posts_list, (filename, index) =>
+                    req = @parse_post filename, callback
+                    if index == @posts_list.length - 1
+                        req.then $(document).trigger 'furb.after.posts.read'
 
 Making some classes available globally.
 
