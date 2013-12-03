@@ -223,14 +223,22 @@ saves it in **Cache** before executing the success callback if a network
 request is needed.
 
         ajax: (params, timeout) =>
-            if @cache.get(params.url) then params.success @cache.get(params.url)
-            else
-                params.success = ((callback) => (data) =>
-                    @cache.set(params.url, data, timeout)
-                    callback data
-                )(params.success)
+            new Promise (resolve, reject) =>
+                if @cache.get(params.url) 
+                    cached = @cache.get params.url
+                    params.success? cached
+                    resolve cached
+                else
+                    params.success = ((callback) => (data) =>
+                        @cache.set(params.url, data, timeout)
 
-                $.ajax params
+                        callback? data
+                        resolve data
+                    )(params.success)
+
+                    params.error = reject
+
+                    $.ajax params
 
 Shorthand versions of the above, should cater to 95% of usage scenarios.
 
