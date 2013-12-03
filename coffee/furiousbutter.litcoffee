@@ -397,12 +397,12 @@ as key.
         @themes = {}
         @register: (instance) -> Theme.themes[@name] = instance
 
-Calls the callback with the parsed template data.
+Calls the callback with parsed template data.
 
-        @get_theme: (blog, theme_part, ctx={}, callback=( -> )) ->
+        get_theme: (theme_part, ctx={}, callback=( -> )) =>
             new Promise (resolve, reject) =>
-                blog.get("themes/#{ blog.spec.theme }/html/#{ theme_part }.html").\
-                        then (data) ->
+                @get("themes/#{ @blog.spec.theme }/html/#{ theme_part }.html").\
+                        then (data) =>
                     [header, body] = _.filter data.split('---'), (i) -> i.length > 0
 
 If there is no header section in the file being parsed the first element
@@ -415,15 +415,15 @@ Render with the renderer provided in the renderer section of theme
 header or, if no rendering method is provided, render with the default
 method for the current blog.
 
-                    renderer = blog.spec.renderer
+                    renderer = @blog.spec.renderer
                     if header? and _.has(header, 'renderer') then renderer = header.renderer
 
 Parse the theme body and call the callback with that data.
                     
                     data = Blog.renderers[renderer] ctx, body
 
-                    callback?.call blog, data
-                    resolve blog, data
+                    callback?.call @blog, data
+                    resolve @blog, data
                 .catch (e) ->
                     reject e
 
@@ -432,8 +432,8 @@ template. The callback points to the action the blog wants to invoke
 after the index is rendered.
 
         render_index: (ctx, callback) ->
-            @blog_instance = ctx
-            Theme.get_theme @blog_instance, 'index', {}, callback
+            @blog = ctx
+            @get_theme 'index', {}, callback
 
 ### Plug-ins
 
@@ -446,7 +446,7 @@ Currently available jQuery event hooks are (with "furb." prefix):
 - before.posts.read
 - after.posts.read
 
-The events are triggered on *document*, and they should bubble up
+The events are triggered on *document*, and they should bubble up.
 
 
 ### The Blog itself
@@ -467,9 +467,8 @@ is provided which uses *underscore.js* templates.
 
         @renderers: {
             native: (context, body) =>
-                compiled = Blog.cache.get(body)
-                if not compiled? then compiled = _.template body
-                return compiled context
+                compiled = Blog.cache.get(body) ? _.template body
+                compiled context
         }
         @themes: {}
         posts: []
@@ -521,12 +520,12 @@ the front end can properly align the post on a page.
 If no default renderer is set through the runtime configuration, the
 'native' renderer is chosen as default.
 
-            if not _.has(@spec, 'renderer') then @spec.renderer = 'native'
+            @spec.renderer = @spec.renderer ? 'native'
 
 There is no need to set a default theme if only one theme is available,
 but it is useful if more are provided on the page.
 
-            if not @spec.theme? then @spec.theme = _.first _.keys Theme.themes
+            @spec.theme = @spec.theme ? _.first _.keys Theme.themes
             Theme.themes[@spec.theme].render_index @, @get_posts
             
             $(document).trigger 'furb.blog.created'
@@ -563,7 +562,7 @@ We make sure that a right number of posts will be received, which is
 needed when neither after nor before parameter were specified. Each post
 is then scheduled to be parsed.
 
-After the last post is parsed, the 'after\_posts\_read' hook providing
+After the last post is parsed, the 'after.posts.read' hook providing
 plugins are called
 
                 @posts_list = _.first @posts_list, params.limit
