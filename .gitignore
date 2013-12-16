@@ -11,6 +11,7 @@
 *.pot
 *.txt
 *.md
+*.css
 tags
 crits
 nosetests.xml
