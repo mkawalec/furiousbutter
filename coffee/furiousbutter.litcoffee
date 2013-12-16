@@ -10,24 +10,11 @@ There is another advantage in that frontend developers need not worry
 about contacting the server efficiently, it is taken care of in the
 background.
 
-### Why only render on the client side?
+### Why render on the client side?
 
-The more I think about it, the more I realize the amazing potential it
-could have - think about private blogs self-hosted on Dropbox. No more
-ads. No more being dependent on some kind of an external blogging
-platform. 
-
-However, the code quality is still pretty rough and it only displays a
-text string now so think of it as a research project for now.
-
-There are hardly any benefits of this way of doing things over just
-having the blog rendered offline, and there are even slight
-disadvantages (though making people upgrade their browsers is more of an
-service to humanity). I expect this approach to gain a huge boost with
-the advent of WebRTC.
-
-So generally, the conclusion here is: it is awesome and can have some
-practical uses by accident.
+It's mostly an issue of code clarity and awesomeness. I am sure that the
+slight disadvantages of this approach over static pages (+javascript)
+pay off well when it comes to the awesomeness aspect.
 
 ### Who is it for?
 
@@ -41,7 +28,10 @@ it is able to display stuff, it should be much more inclusive.
 - [x] In-route parameters enclosed by '<' and '>'
 - [x] Return promises apart from accepting callbacks
 - [x] Add a plug-ins architecture
-- [ ] Complete tests for every function
+- [x] Complete tests for every function
+- [ ] Different sources should be definable by a simple function
+- [ ] Add support for pages
+- [ ] Use webserver index pages for listing posts/pages
 - [ ] Make the basic theme display useful stuff
 - [ ] Split the code on readable parts using Browserify
 - [ ] window.feed(type='atom') should return a feed of a given type
